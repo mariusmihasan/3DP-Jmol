@@ -1,0 +1,67 @@
+#de adaugat partea de sus incarcare, stergere apa, adaugare H?
+
+# Enable the bounding box
+boundbox on;
+refresh;
+
+# Retrieve bounding box properties
+var centerStr = getProperty("boundBoxInfo", "center");
+var corner0Str = getProperty("boundBoxInfo", "corner0");
+var corner1Str = getProperty("boundBoxInfo", "corner1");
+var vectorStr = getProperty("boundBoxInfo", "vector");
+
+# Convert extracted properties into numerical arrays
+var center = [ centerStr.x, centerStr.y, centerStr.z ];
+var corner0 = [ corner0Str.x, corner0Str.y, corner0Str.z ];
+var corner1 = [ corner1Str.x, corner1Str.y, corner1Str.z ];
+var vector = [ vectorStr.x, vectorStr.y, vectorStr.z ];
+
+# Ensure the values are retrieved before proceeding
+if (center == null || corner0 == null || corner1 == null || vector == null) {
+  print "ERROR: Bounding box data not retrieved.";
+  exit;
+}
+
+# Calculate dimensions using vector
+var length = 2 * vector[0];  # X-axis (width)
+var height = 2 * vector[1];  # Y-axis (height)
+var depth = 2 * vector[2];   # Z-axis (depth)
+
+# Alternative method (sanity check)
+var length_check = corner1[0] - corner0[0];
+var height_check = corner1[1] - corner0[1];
+var depth_check = corner1[2] - corner0[2];
+
+# Ensure consistency
+if (abs(length - length_check) > 0.1 || abs(height - height_check) > 0.1 || abs(depth - depth_check) > 0.1) {
+    length = length_check;
+    height = height_check;
+    depth = depth_check;
+}
+
+# Calculate volume
+var volume = length * height * depth;
+
+# Determine the largest dimension
+var maxDim = length;
+var maxLabel = "Length";
+
+if (height > maxDim) {
+    maxDim = height;
+    maxLabel = "Height";
+}
+if (depth > maxDim) {
+    maxDim = depth;
+    maxLabel = "Depth";
+}
+
+# Display results in the console
+print "Bounding Box Measurements:";
+print maxLabel + " = " + maxDim + " Å";
+print "Volume = " + volume + " Å³";
+
+# Display the measurements in the Jmol window
+set echo top center;
+echo "Bounding Box Measurements:";
+echo maxLabel + " = " + maxDim + " Å";
+echo "Volume = " + volume + " Å³";
