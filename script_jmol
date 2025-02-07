@@ -1,5 +1,8 @@
-#de adaugat partea de sus incarcare, stergere apa, adaugare H?
-
+#this is the initial loading and preparation of the molecule. Loading will be done by the website (how?). A decision is needed for the Hidrogens
+Load=4ins
+SET pdbAddHydrogens
+delete water
+# Calculation of the bounding box X,Y,Z dimensions and identification of the largest dimension as a base for the scaling factor
 # Enable the bounding box
 boundbox on;
 refresh;
@@ -59,6 +62,7 @@ if (depth > maxDim) {
 print "Bounding Box Measurements:";
 print maxLabel + " = " + maxDim + " Å";
 print "Volume = " + volume + " Å³";
+# Largest dimension identified - variable maxDim
 
 # Display the measurements in the Jmol window
 set echo top center;
