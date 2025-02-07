@@ -1,8 +1,10 @@
-#this is the initial loading and preparation of the molecule. Loading will be done by the website (how?). A decision is needed for the Hidrogens
+# This is the initial loading and preparation of the molecule.
+# Loading will be done by the website (how?). A decision is needed for the Hydrogens.
 Load=4ins
 SET pdbAddHydrogens
 delete water
-# Calculation of the bounding box X,Y,Z dimensions and identification of the largest dimension as a base for the scaling factor
+
+# Calculate  the bounding box X,Y,Z dimensions and identify the largest dimension as a base for the scaling factor.
 # Enable the bounding box
 boundbox on;
 refresh;
@@ -57,12 +59,20 @@ if (depth > maxDim) {
     maxDim = depth;
     maxLabel = "Depth";
 }
+# The largest dimension as maxDim calculation is complete. Next is to calculate the maximum print scale (MaxPrintScale), which is dependent on the minimum print bed dimension (X, Y, or Z) 
 
-# Display results in the console
-print "Bounding Box Measurements:";
+# Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed. For now, it is set manually in the script, but it might be advisable/required to have a way of setting it from the browser.  
+var PrintBedMinDimension = 210;
+
+# Calculate MaxPrintScale
+var MaxPrintScale = (PrintBedMinDimension / (maxDim * 10))*100;
+
+# Display results in the console (needs to be edited and only the MaxPrintScale displayed in the final version of the script. Will keep the rest for now for debugging.
+print "Maximum dimension of the boundbox:";
 print maxLabel + " = " + maxDim + " Å";
 print "Volume = " + volume + " Å³";
-# Largest dimension identified - variable maxDim
+# text here needs to be edited depending on the final decision on how the var PrintBedMinDimension will be implemented (fixed or user selectable)
+print "Maximum printing scale to fit on a medium size (ie. Ender 3; Prusa MK3S+) 3D printer = " + MaxPrintScale + " %";
 
 # Display the measurements in the Jmol window
 set echo top center;
