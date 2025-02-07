@@ -104,6 +104,17 @@ if (PrintScaleFactor > 0.65) {
 
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
+
+#first attempts to scale items in JMol based on PrintScaleFactor. Math is not right, but the scripting works
+# Compute the spacefill size as a percentage
+var spacefill_size = PrintScaleFactor * 23;   # Convert to percentage (0.23 * 100)
+
+# Round to the nearest integer using Jmol's point() function
+var spacefill_percent = point(spacefill_size + 0.5);
+
+# Directly apply the spacefill size (without eval)
+spacefill @spacefill_percent%;
+
 # Display the measurements in the Jmol window - does not work yet, will deal with it later
 #set echo top center;
 #echo "Bounding Box Measurements:";
