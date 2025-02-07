@@ -95,7 +95,7 @@ print "At the indicated prin scale, your model will be approx " + length_mm + " 
 
 # Print recommendations based on the MaxPrintScale value. I have set up some thresholds based on the  PrintScaleFactor. 0.65 is calculated, should be ok, 0.3 is random and needs to be modified
 if (PrintScaleFactor > 0.65) {
-    print "Your molecule is rather small. All renderings are suitable. We recommend printing it at " + MaxPrintScale + " % or higher.";
+    print "Your molecule is rather small. All renderings are suitable. We recommend printing it at " + MaxPrintScale_round + " %" % or higher.";
 } else if (PrintScaleFactor >= 0.3) {
     print "Your molecule is rather large. Only printing it as a cartoon or surface is recommended at " + MaxPrintScale + " % or lower.";
 } else {
