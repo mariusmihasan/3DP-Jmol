@@ -1,6 +1,6 @@
 # This is the initial loading and preparation of the molecule.
 # Loading will be done by the website (how?). A decision is needed for the Hydrogens.
-Load=4ins
+Load=2hhb
 SET pdbAddHydrogens
 delete water
 
@@ -64,18 +64,49 @@ if (depth > maxDim) {
 # Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed. For now, it is set manually in the script, but it might be advisable/required to have a way of setting it from the browser.  
 var PrintBedMinDimension = 210;
 
-# Calculate MaxPrintScale
+# Calculate MaxPrintScale - need to decide if it is useful to have an input from a user here
 var MaxPrintScale = (PrintBedMinDimension / (maxDim * 10))*100;
+
+# Calculate PrintScaleFactor - planned to be used for scaling dimensions later. Same as MaxPrintScale, but not in %
+var PrintScaleFactor = PrintBedMinDimension / (maxDim * 10);
 
 # Display results in the console (needs to be edited and only the MaxPrintScale displayed in the final version of the script. Will keep the rest for now for debugging.
 print "Maximum dimension of the boundbox:";
 print maxLabel + " = " + maxDim + " Å";
 print "Volume = " + volume + " Å³";
+# text here only for debugging, can be removed later - just to check calculations and always understand the difference and have ready values for MaxPrintScale and PrintScaleFactor
+print "Print Scale Factor: " + PrintScaleFactor;
+print "----------------------------------------------";
+print "--- Start for 3D Printing RECOMMENDATIONS ----";
 # text here needs to be edited depending on the final decision on how the var PrintBedMinDimension will be implemented (fixed or user selectable)
-print "Maximum printing scale to fit on a medium size (ie. Ender 3; Prusa MK3S+) 3D printer = " + MaxPrintScale + " %";
+var MaxPrintScale_round = point(MaxPrintScale + 0.5);    # rounding up
+print "Maximum printing scale to fit on a medium size (ie. Ender 3; Prusa MK3S+) 3D printer = " + MaxPrintScale_round + " %";
 
-# Display the measurements in the Jmol window
-set echo top center;
-echo "Bounding Box Measurements:";
-echo maxLabel + " = " + maxDim + " Å";
-echo "Volume = " + volume + " Å³";
+# Output approximate real-world print dimensions at MaxPrintScale 
+# Compute raw values first
+var length_raw = length * PrintScaleFactor * 10;
+var height_raw = height * PrintScaleFactor * 10;
+var depth_raw = depth * PrintScaleFactor * 10;
+# Round values to the nearest integer
+var length_mm = point(length_raw + 0.5);  # rounding up
+var height_mm = point(height_raw + 0.5);  # rounding up
+var depth_mm = point(depth_raw + 0.5);    # rounding up
+print "At the indicated prin scale, your model will be approx " + length_mm + " mm x " + height_mm + " mm x " + depth_mm + " mm.";
+
+# Print recommendations based on the MaxPrintScale value. I have set up some thresholds based on the  PrintScaleFactor. 0.65 is calculated, should be ok, 0.3 is random and needs to be modified
+if (PrintScaleFactor > 0.65) {
+    print "Your molecule is rather small. All renderings are suitable. We recommend printing it at " + MaxPrintScale + " % or higher.";
+} else if (PrintScaleFactor >= 0.3) {
+    print "Your molecule is rather large. Only printing it as a cartoon or surface is recommended at " + MaxPrintScale + " % or lower.";
+} else {
+    print "Your molecule is rather large. We need to look better into this.";
+}
+
+print "--- End for 3D Printing RECOMMENDATIONS ----";
+print "--------------------------------------------";
+# Display the measurements in the Jmol window - does not work yet, will deal with it later
+#set echo top center;
+#echo "Bounding Box Measurements:";
+#echo maxLabel + " = " + maxDim + " Å";
+#echo "Volume = " + volume + " Å³";
+Write script_latest_run.stl
