@@ -7,19 +7,23 @@ delete water
 
 #This is the place where we are going to colect and list all technical variables related to the 3d-printers, dimensions, etc. These are important for calculations and we need to put them here in order to be able to change them quickly
  
-var JMolStlScale = 10 # Jmol exports 1 A as 10 mm. This means that all dimesnions in Jmol are exported 10x larger. We will work with A, but always multiply the final resuls in mm with this. Scale needs to be devided??? by this. We will keep it here for reference and in case JMol changes this in the future
+var JMolStlScale = 10; # Jmol exports 1 A as 10 mm. This means that all dimesnions in Jmol are exported 10x larger. We will work with A, but always multiply the final resuls in mm with this. Scale needs to be devided??? by this. We will keep it here for reference and in case JMol changes this in the future
+
+var MinPrintedObjDimen = 3; # minimum printed dimension of an object (bond, atom, thikness). In the paper is 2.6 but will start with 3 mm
 
 var PrintBedMinDimension = 210 / JMolStlScale; # Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and corrected for A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
 
-#Theresholds for scale (var PrintScaleFactor) for each rendering scheme if required
+#Thresholds for scale (var PrintScaleFactor) for each rendering scheme if required
+
 #Ball and stick
-var MaxPrintScaleFactorBallStick = 0.65 #final based on Math, needs validation by printing
-var MaxPrintScaleFactorBallStick = 0.65
-#var MinPrintScaleFactorBallStick
-#Sticks - aka backbone
+var MaxPrintScaleFactorBallStick = 1.36 / MinPrintedObjDimen; #soemthing i fail to understand in the Math here, need to check and investigate, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
+var MinPrintScaleFactorBallStick = (2 * MinPrintedObjDimen) / (2.86 * JMolStlScale); # where 2.86 is the length of a C-C + peptide bonds - based on Math, needs validation by printing
 
+#Sticks - aka backbone -- wil continue here
+var MaxPrintScaleFactorBackbone = MaxPrintScaleFactorBallStick; #temporary, needs math
+var MinPrintScaleFactorBackbone = 1; #temporary, from the paper, needs math
 
-# Calculate  the bounding box X,Y,Z dimensions and identify the largest dimension as a base for the scaling factor.
+# Calculate  the bounding box X,Y,Z dimensions and) identify the largest dimension as a base for the scaling factor.
 # Enable the bounding box
 boundbox on;
 refresh;
@@ -76,47 +80,77 @@ if (depth > maxDim) {
 }
 # The largest dimension as maxDim calculation is complete. Next is to calculate the maximum print scale (MaxPrintScale), which is dependent on the minimum print bed dimension (X, Y, or Z) 
 
-# Calculate MaxPrintScale - need to decide if it is useful to have an input from a user here
+# Calculate MaxPrintScale - largest scale at which the model can be printed
 var MaxPrintScale = (PrintBedMinDimension / maxDim)*100;
 
-# Calculate PrintScaleFactor - planned to be used for scaling dimensions later. Same as MaxPrintScale, but not in %
-var PrintScaleFactor = PrintBedMinDimension / maxDim;
+# Calculate MaxPrintScaleFactor - planned to be used for scaling dimensions later. Same as MaxPrintScale, but not in %
+var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
-# Display results in the console (needs to be edited and only the MaxPrintScale displayed in the final version of the script. Will keep the rest for now for debugging.
+# Calculate MinPrintScale - the smallest scale at which the model can be printed (MinPrintScale), which will be dependent on the rendering style 
+var MinPrintScale = MinPrintScaleFactorBallStick*100; #temporary, will need to implement a function for each style of visualisation
+
+# Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later. Same as MinPrintScale, but not in %
+var MinPrintScaleFactor = MinPrintScaleFactorBallStick; #temporary, will need to implement a function for each style of visualisation
+
+#setting up the print scale (PrintScaleFactor)
+var PrintScaleFactor = MaxPrintScaleFactor; #will continue with the largest but maybe it is good to either have have a way o recomanding a suitable PrintScaleFactor based on the Min and Max, or user input
+
+# Display results in the console (needs to be edited in the final version of the script for debugging.
 print "Maximum dimension of the boundbox:";
 print maxLabel + " = " + maxDim + " Å";
 print "Volume = " + volume + " Å³";
-# text here only for debugging, can be removed later - just to check calculations and always understand the difference and have ready values for MaxPrintScale and PrintScaleFactor
-print "Print Scale Factor: " + PrintScaleFactor;
+# - just to check calculations and always understand the difference and have ready values for MaxPrintScale, MaxPrintScaleFactor, MinPrintScale, MinPrintScaleFactor
+print "MaxPrint Scale Factor: " + MaxPrintScaleFactor;
+print "MinPrint Scale Factor: " + MinPrintScaleFactor;
+print "MaxPrintScaleFactorBallStick: " + MaxPrintScaleFactorBallStick;
+print "MinPrintScaleFactorBallStick: " + MinPrintScaleFactorBallStick;
 print "----------------------------------------------";
 print "--- Start for 3D Printing RECOMMENDATIONS ----";
-# text here needs to be edited depending on the final decision on how the var PrintBedMinDimension will be implemented (fixed or user selectable)
+
+# rounding up scale values for display
 var MaxPrintScale_round = point(MaxPrintScale + 0.5);    # rounding up
-print "Maximum printing scale to fit on a medium size (ie. Ender 3; Prusa MK3S+) 3D printer = " + MaxPrintScale_round + " %";
+var MinPrintScale_round = point(MinPrintScale + 0.5);    # rounding up
 
-# Output approximate real-world print dimensions in mm at MaxPrintScale 
-# Compute raw values first
-var length_raw = length * PrintScaleFactor * JMolStlScale;
-var height_raw = height * PrintScaleFactor * JMolStlScale;
-var depth_raw = depth * PrintScaleFactor * JMolStlScale;
-# Round values to the nearest integer
-var length_mm = point(length_raw + 0.5);  # rounding up
-var height_mm = point(height_raw + 0.5);  # rounding up
-var depth_mm = point(depth_raw + 0.5);    # rounding up
-print "At the indicated prin scale, your model will be approx " + length_mm + " mm x " + height_mm + " mm x " + depth_mm + " mm.";
+# text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
 
-# Print recommendations based on the MaxPrintScale value. I have set up some thresholds based on the  PrintScaleFactor. Thereshols are listed above, in the technical specs section. 0.3 is random and needs to be modified
+print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer. Using SLA printers is possible, but not yet tested.";
+
+# Print recommendations based on the PrintScale value. I have set up some thresholds listed above, in the technical specs section. 0.3 is random and needs to be modified
+
 if (PrintScaleFactor > MaxPrintScaleFactorBallStick) {
-    print "Your molecule is rather small. All renderings are suitable. We recommend printing it at " + MaxPrintScale_round + " % or as low as 100%????.";
-} else if (PrintScaleFactor >= 0.3) {
-    print "Your molecule is rather large. Only printing it as a cartoon or surface is recommended at " + MaxPrintScale_round + " % or lower.";
+    print "Your molecule is rather small. All renderings are suitable. It can be printed at a maximum print scale of " + MaxPrintScale_round + " % or a minimum print scale of " + MinPrintScale_round + " %";
+} else if (PrintScaleFactor >= MinPrintScaleFactorBackbone) {
+    print "Your molecule is medium sized. Only printing it as a cartoon or surface is recommended at a maximum prin scale of " + MaxPrintScale_round + " % or a minimum print scale of ..needs to be determine....";
 } else {
     print "Your molecule is rather large. We need to look better into this.";
 }
 
+# Output approximate real-world print dimensions in mm at MaxPrintScale 
+# Compute raw values first
+var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+# Round values to the nearest integer
+var max_length_mm = point(max_length_raw + 0.5);  # rounding up
+var max_height_mm = point(max_height_raw + 0.5);  # rounding up
+var max_depth_mm = point(max_depth_raw + 0.5);    # rounding up
+print "Printed at the maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+
+# Output approximate real-world print dimensions in mm at MinPrintScale 
+# Compute raw values first
+var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+# Round values to the nearest integer
+var min_length_mm = point(min_length_raw + 0.5);  # rounding up
+var min_height_mm = point(min_height_raw + 0.5);  # rounding up
+var min_depth_mm = point(min_depth_raw + 0.5);    # rounding up
+print "Printed at the minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
+print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; All models are rendered to be printed at the indicated maximum printing scale, not lower. Will try to implement scale sugestions or user selectable scales later";
 #first attempts to scale items in JMol based on PrintScaleFactor. Math is not right, but the scripting works
 # Compute the spacefill size as a percentage
 var spacefill_size = PrintScaleFactor * 23;   # Convert to percentage (0.23 * 100)
