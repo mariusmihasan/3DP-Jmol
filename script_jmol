@@ -165,9 +165,9 @@ print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
 print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; All models are rendered to be printed at the indicated maximum printing scale, not lower. Will try to implement scale sugestions or user selectable scales later";
-#first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works,the scripting works
+#first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works, dont understand how,the scripting works
 # Compute the spacefill size as a percentage
-var spacefill_scale = (0.23 * PrintScaleFactor) / ((MinPrintedObjDimen * AtomToBondRatio) / 2);   # Scale for Atom radius, so MinPrintedObjDimen means atom diameter, hence is divided by 2
+var spacefill_scale = (0.23 * PrintScaleFactor) / ((MinPrintedObjDimen / AtomToBondRatio) / 2);   # Scale for Atom radius, so MinPrintedObjDimen means atom diameter, hence is divided by 2
 
 # Round to the nearest integer using Jmol's point() function
 var spacefill_percent = point(spacefill_scale + 0.5);
