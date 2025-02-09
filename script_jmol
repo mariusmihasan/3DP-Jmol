@@ -4,6 +4,20 @@ Load=2hhb
 SET pdbAddHydrogens
 delete water
 
+#This is the place where we are going to colect and list all technical variables related to the 3d-printers, dimensions, etc. These are important for calculations and we need to put them here in order to be able to change them quickly
+ 
+var JMolStlScale = 10 # Jmol exports 1 A as 10 mm. This means that all dimesnions in Jmol are exported 10x larger. We will work with A, but always multiply the final resuls in mm with this. Scale needs to be devided??? by this. We will keep it here for reference and in case JMol changes this in the future
+
+var PrintBedMinDimension = 210 / JMolStlScale; # Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and corrected for A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
+
+#Theresholds for scale (var PrintScaleFactor) for each rendering scheme if required
+#Ball and stick
+var MaxPrintScaleFactorBallStick = 0.65 #final based on Math, needs validation by printing
+var MaxPrintScaleFactorBallStick = 0.65
+#var MinPrintScaleFactorBallStick
+#Sticks - aka backbone
+
+
 # Calculate  the bounding box X,Y,Z dimensions and identify the largest dimension as a base for the scaling factor.
 # Enable the bounding box
 boundbox on;
@@ -61,14 +75,11 @@ if (depth > maxDim) {
 }
 # The largest dimension as maxDim calculation is complete. Next is to calculate the maximum print scale (MaxPrintScale), which is dependent on the minimum print bed dimension (X, Y, or Z) 
 
-# Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed. For now, it is set manually in the script, but it might be advisable/required to have a way of setting it from the browser.  
-var PrintBedMinDimension = 210;
-
 # Calculate MaxPrintScale - need to decide if it is useful to have an input from a user here
-var MaxPrintScale = (PrintBedMinDimension / (maxDim * 10))*100;
+var MaxPrintScale = (PrintBedMinDimension / maxDim)*100;
 
 # Calculate PrintScaleFactor - planned to be used for scaling dimensions later. Same as MaxPrintScale, but not in %
-var PrintScaleFactor = PrintBedMinDimension / (maxDim * 10);
+var PrintScaleFactor = PrintBedMinDimension / maxDim;
 
 # Display results in the console (needs to be edited and only the MaxPrintScale displayed in the final version of the script. Will keep the rest for now for debugging.
 print "Maximum dimension of the boundbox:";
@@ -82,19 +93,19 @@ print "--- Start for 3D Printing RECOMMENDATIONS ----";
 var MaxPrintScale_round = point(MaxPrintScale + 0.5);    # rounding up
 print "Maximum printing scale to fit on a medium size (ie. Ender 3; Prusa MK3S+) 3D printer = " + MaxPrintScale_round + " %";
 
-# Output approximate real-world print dimensions at MaxPrintScale 
+# Output approximate real-world print dimensions in mm at MaxPrintScale 
 # Compute raw values first
-var length_raw = length * PrintScaleFactor * 10;
-var height_raw = height * PrintScaleFactor * 10;
-var depth_raw = depth * PrintScaleFactor * 10;
+var length_raw = length * PrintScaleFactor * JMolStlScale;
+var height_raw = height * PrintScaleFactor * JMolStlScale;
+var depth_raw = depth * PrintScaleFactor * JMolStlScale;
 # Round values to the nearest integer
 var length_mm = point(length_raw + 0.5);  # rounding up
 var height_mm = point(height_raw + 0.5);  # rounding up
 var depth_mm = point(depth_raw + 0.5);    # rounding up
 print "At the indicated prin scale, your model will be approx " + length_mm + " mm x " + height_mm + " mm x " + depth_mm + " mm.";
 
-# Print recommendations based on the MaxPrintScale value. I have set up some thresholds based on the  PrintScaleFactor. 0.65 is calculated, should be ok, 0.3 is random and needs to be modified
-if (PrintScaleFactor > 0.65) {
+# Print recommendations based on the MaxPrintScale value. I have set up some thresholds based on the  PrintScaleFactor. Thereshols are listed above, in the technical specs section. 0.3 is random and needs to be modified
+if (PrintScaleFactor > MaxPrintScaleFactorBallStick) {
     print "Your molecule is rather small. All renderings are suitable. We recommend printing it at " + MaxPrintScale_round + " % or as low as 100%????.";
 } else if (PrintScaleFactor >= 0.3) {
     print "Your molecule is rather large. Only printing it as a cartoon or surface is recommended at " + MaxPrintScale_round + " % or lower.";
