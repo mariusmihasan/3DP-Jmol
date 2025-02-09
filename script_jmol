@@ -1,6 +1,7 @@
 # This is the initial loading and preparation of the molecule.
 # Loading will be done by the website (how?). A decision is needed for the Hydrogens.
-Load=2hhb
+#Load=2hhb
+load :aspirin
 SET pdbAddHydrogens
 delete water
 
