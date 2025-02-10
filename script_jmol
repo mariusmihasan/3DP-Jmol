@@ -2,8 +2,8 @@
 # Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 #Load=2hhb
 #Load=1ins
-Load=2bna
-#load :aspirin
+#Load=2bna
+load :aspirin
 SET pdbAddHydrogens
 delete water
 
@@ -148,7 +148,7 @@ var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
 var max_length_mm = point(max_length_raw + 0.5);  # rounding up
 var max_height_mm = point(max_height_raw + 0.5);  # rounding up
 var max_depth_mm = point(max_depth_raw + 0.5);    # rounding up
-print "Printed at a recommended maximum printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+print "Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
 
 # Output approximate real-world print dimensions in mm at MinPrintScale 
 # Compute raw values first
@@ -159,33 +159,39 @@ var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
 var min_length_mm = point(min_length_raw + 0.5);  # rounding up
 var min_height_mm = point(min_height_raw + 0.5);  # rounding up
 var min_depth_mm = point(min_depth_raw + 0.5);    # rounding up
-print "Printed at a recommended minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+print "Printed at a minimum allowed printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
 
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
 print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; All models are rendered to be printed at the indicated maximum printing scale, not lower. Will try to implement scale sugestions or user selectable scales later";
 #first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works, dont understand how,the scripting works
-# Compute the spacefill size as a percentage
-var spacefill_scale = ((0.23 * PrintScaleFactor) / ((MinPrintedObjDimen * AtomToBondRatio) / 2));   # Scale for Atom radius in %, so MinPrintedObjDimen means atom diameter, hence is divided by 2
 
-# Round to the nearest integer using Jmol's point() function
-var spacefill_percent = point(spacefill_scale + 0.5);
+# Computation of rendering factors for diffrent visualisation styles
+# Compute ball and stick rendering factor related to the default rendering radius of a C-C bond of 0.15 A;
+var BallStickRenderFactor = (MinPrintedObjDimen / 2) / (PrintScaleFactor * 0.15);
 
-# Directly apply the spacefill size (without eval)
+#Apply rendering factor for bonds
+var bonds_radius = BallStickRenderFactor * 0.15;
+wireframe @bonds_radius; 
+
+#Apply rendering factor for atoms
+# Compute the space fill size as a percentage
+var spacefill_scale = (BallStickRenderFactor * 0.2)*100; #0.23 is the default vWradius scaling (23%) in JMol for C. Lowered to make sure that atoms do not merge and keep the bond visible; 
+var spacefill_percent = point(spacefill_scale + 0.5); #round up
+# Directly apply the space fill size (without eval)
 spacefill @spacefill_percent%;
-print "spacefill_scale = " + spacefill_scale;
-print "spacefill_percent = " + spacefill_percent;
 
-#Bonds scaling
-# Compute and apply bonds scaling
-var bonds_scale = ((0.15 * PrintScaleFactor) / MinPrintedObjDimen); #corected radius to rendering scale
-print "bonds_scale = " + bonds_scale;
-wireframe @bonds_scale; 
+print "-----debugg values for checking new formulas---------";
+#print "BallStickRenderFactor " + BallStickRenderFactor;
+#print "bonds_radius " + bonds_radius;
+#print "spacefill_scale " + spacefill_scale;
+#print "spacefill_percent " + spacefill_percent;
+Write script_latest_run.stl
+
 
 # Display the measurements in the Jmol window - does not work
 #set echo top center;
 #echo "Bounding Box Measurements:";
 #echo maxLabel + " = " + maxDim + " Å";
 #echo "Volume = " + volume + " Å³";
-Write script_latest_run.stl
