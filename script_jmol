@@ -167,15 +167,21 @@ print "--------------------------------------------";
 print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; All models are rendered to be printed at the indicated maximum printing scale, not lower. Will try to implement scale sugestions or user selectable scales later";
 #first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works, dont understand how,the scripting works
 # Compute the spacefill size as a percentage
-var spacefill_scale = (0.23 * PrintScaleFactor) / ((MinPrintedObjDimen / AtomToBondRatio) / 2);   # Scale for Atom radius, so MinPrintedObjDimen means atom diameter, hence is divided by 2
+var spacefill_scale = ((0.23 * PrintScaleFactor) / ((MinPrintedObjDimen * AtomToBondRatio) / 2));   # Scale for Atom radius in %, so MinPrintedObjDimen means atom diameter, hence is divided by 2
 
 # Round to the nearest integer using Jmol's point() function
 var spacefill_percent = point(spacefill_scale + 0.5);
 
 # Directly apply the spacefill size (without eval)
 spacefill @spacefill_percent%;
-print "spacefill_scale " + spacefill_scale + 
-print "spacefill_percent " + spacefill_percent + 
+print "spacefill_scale = " + spacefill_scale;
+print "spacefill_percent = " + spacefill_percent;
+
+#Bonds scaling
+# Compute and apply bonds scaling
+var bonds_scale = ((0.15 * PrintScaleFactor) / MinPrintedObjDimen); #corected radius to rendering scale
+print "bonds_scale = " + bonds_scale;
+wireframe @bonds_scale; 
 
 # Display the measurements in the Jmol window - does not work
 #set echo top center;
