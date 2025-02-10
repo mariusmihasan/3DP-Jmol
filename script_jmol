@@ -148,7 +148,7 @@ var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
 var max_length_mm = point(max_length_raw + 0.5);  # rounding up
 var max_height_mm = point(max_height_raw + 0.5);  # rounding up
 var max_depth_mm = point(max_depth_raw + 0.5);    # rounding up
-print "Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+print "Printed at a recommended maximum printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
 
 # Output approximate real-world print dimensions in mm at MinPrintScale 
 # Compute raw values first
@@ -159,7 +159,7 @@ var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
 var min_length_mm = point(min_length_raw + 0.5);  # rounding up
 var min_height_mm = point(min_height_raw + 0.5);  # rounding up
 var min_depth_mm = point(min_depth_raw + 0.5);    # rounding up
-print "Printed at a minimum allowed printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+print "Printed at a recommended minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
 
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
