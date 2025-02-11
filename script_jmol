@@ -1,11 +1,11 @@
 # This is the initial loading and preparation of the molecule.
 # Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
-#Load=7K00 #ribosome - extreamly large
+#Load*8jiv #ribosome from EBI - extreamly large
 #Load=4ins #small protein
 #Load=2hhb #large protein
 #Load=4rna #tRNA, printing in balls and sticks was difficult
-Load=2bna #DNA, printing in balls and sticks was easy
-#load :aspirin #small molecule, printing in balls and sticks at 100% is recomended
+#Load=2bna #DNA, printing in balls and sticks was easy
+load :aspirin #small molecule, printing in balls and sticks at 100% is recomended
 SET pdbAddHydrogens
 delete water
 
@@ -72,11 +72,11 @@ boundbox off;
  
 var JMolStlScale = 10.0; # Jmol exports 1 A as 10 mm. This means that all dimesnions in Jmol are exported 10x larger. We will do all math in A, and for the final result in mm with will multiply this. We will keep it here for reference and in case JMol changes this in the future.
 
-var MinPrintedObjDimen = 3.0 / JMolStlScale; #minimum printed dimension of an object (bond, atom, thikness). In the paper is 2.6 but will start with 3 mm. Divided by the JMolStlScale as we work in A.
+var MinPrintedObjDimen = 3.0 / JMolStlScale; #minimum printed dimension of an object (bond, thikness). In the paper is 2.6. We will use 3 mm for more sturdy models. Divided by the JMolStlScale as we work in A. Some limits (atoms vWr % in this script, maybe other, will depend on this)
 
 var RefBondLength = 2.86; #dimension of a C-C and peptide length in A used to calculate minimum printing scale. Based on Math, needs validation by printing
 
-var AtomToBondRatio = 7.8 / 3.0 #ratio between an C atom diameter and a covalent bond thicknes
+var AtomToBondRatio = 0.78 / MinPrintedObjDimen #ratio between an C atom diameter and a covalent bond thicknes
 
 # Define scaling factor for atom spacefill relative to MinPrintedObjDimen. 0.23 is default scalling for a C atom in Jmol, 0.2 is default scalling for a H atom in Jmol
 var AtomScalingFactor = 0.23; # Adjust this if needed based on printing results
@@ -175,15 +175,21 @@ print "--------------------------------------------";
 var bonds_radius = JMolRenderFactor / 2;
 wireframe @bonds_radius; 
 
-# Compute and apply rendering factor for atoms (ensuring rounding)
-#var scaledPercent = point((((bonds_radius * 2)*AtomToBondRatio) / AtomScalingFactor) * 100 + 0.5);
-#spacefill @scaledPercent%;
+# Compute and apply rendering factor for atoms expressed as vWr % (ensuring rounding)
+var AtomsScaledPercent = point((JMolRenderFactor * AtomScalingFactor / MinPrintedObjDimen ) * 100 + 0.5);
+# Ensure AtomsScaledPercent does not exceed 55%. This value was chosen visually in JMol so that at MinScaleFactor and depends on the MinPrintedObjDimen 
+if (AtomsScaledPercent > 55) {
+    AtomsScaledPercent = 55;
+}
+spacefill @AtomsScaledPercent%;
 
 print "-----debugg values for checking new formulas---------";
 print "PrintScaleFactor " + PrintScaleFactor;
 print "JMolRenderFactor " + JMolRenderFactor;
-print "scaledPercent " + scaledPercent;
+print "AtomsScaledPercent " + AtomsScaledPercent;
 print "bonds_radius " + bonds_radius;
-var check = (bonds_radius * 2)*AtomToBondRatio
+var scaledPercentReal = point((JMolRenderFactor * AtomScalingFactor / MinPrintedObjDimen ) * 100 + 0.5);
+#var check = scaledPercentReal
+var check = MinPrintedObjDimen
 print "check " + check;
 write test.stl
