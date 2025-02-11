@@ -177,9 +177,9 @@ wireframe @bonds_radius;
 
 #Apply rendering factor for atoms
 # Compute the spacefill size as a percentage
-var spacefill_scale = (JMolRenderFactor * 0.3 * AtomToBondRatio) * 100; #0.23 is the default vWradius scaling (23%) in JMol for C. Lowered to make sure that atoms do not merge and keep the bond visible; 
+var spacefill_scale = (JMolRenderFactor * 0.2 * AtomToBondRatio) * 100; #0.23 is the default vWradius scaling (23%) in JMol for C. Lowered to make sure that atoms do not merge and keep the bond visible; 
 var spacefill_percent = point(spacefill_scale + 0.5); # Round up
-# Ensure spacefill_scale_corrected does not exceed 45
+# Ensure spacefill_scale_corrected does not exceed 50% - just by looking, empiric, needs to be determined
 var spacefill_scale_corrected = spacefill_percent; # Default to calculated value
 
 if (spacefill_percent > 50) {
