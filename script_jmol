@@ -82,7 +82,7 @@ var PrintBedMinDimension = 210.0 / JMolStlScale; # Introduce the PrintBedMinDime
 
 # Ball and Stick Model
 var MaxRendScaleFactorBallStick = 1.36 / MinPrintedObjDimen / JMolStlScale; #final based on Math, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
-var MinRendScaleFactorBallStick = (2.0 * MinPrintedObjDimen) / RefBondLength; 
+var MinRendScaleFactorBallStick = (2.0 * MinPrintedObjDimen) / RefBondLength; #this needs testing and adjusting. Math is based for now on MinPrintedObjDimen which is diameter. But math needs to be made on length - ie minimal length at which atoms start to merge; 
 
 # Sticks (Backbone Representation) — will continue here
 var MaxRendScaleFactorBackbone = 0.2; #temporary, needs math
