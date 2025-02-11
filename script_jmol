@@ -4,8 +4,8 @@
 #Load=4ins #small protein
 #Load=2hhb #large protein
 #Load=4rna #tRNA, printing in balls and sticks was difficult
-#Load=2bna #DNA, printing in balls and sticks was easy
-load :aspirin #small molecule, printing in balls and sticks at 100% is recomended
+Load=2bna #DNA, printing in balls and sticks was easy
+#load :aspirin #small molecule, printing in balls and sticks at 100% is recomended
 SET pdbAddHydrogens
 delete water
 
@@ -77,6 +77,9 @@ var MinPrintedObjDimen = 3.0 / JMolStlScale; #minimum printed dimension of an ob
 var RefBondLength = 2.86; #dimension of a C-C and peptide length in A used to calculate minimum printing scale. Based on Math, needs validation by printing
 
 var AtomToBondRatio = 7.8 / 3.0 #ratio between an C atom diameter and a covalent bond thicknes
+
+# Define scaling factor for atom spacefill relative to MinPrintedObjDimen. 0.23 is default scalling for a C atom in Jmol, 0.2 is default scalling for a H atom in Jmol
+var AtomScalingFactor = 0.23; # Adjust this if needed based on printing results
 
 var PrintBedMinDimension = 210.0 / JMolStlScale; # Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and divided by the JMolStlScale as we work in A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
 
@@ -167,39 +170,20 @@ print "Printed at a minimum allowed printing scale of " + MinPrintScale_round + 
 
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
-
-print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; All models are rendered to be printed at the indicated maximum printing scale, not lower. Will try to implement scale sugestions or user selectable scales later";
-#first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works, dont understand how,the scripting works
-
 # Computate and apply MolRenderFactor rendering factor for each visualisation styles
 #Apply rendering factor for bonds
 var bonds_radius = JMolRenderFactor / 2;
 wireframe @bonds_radius; 
 
-#Apply rendering factor for atoms
-# Compute the spacefill size as a percentage
-var spacefill_scale = (JMolRenderFactor * 0.2 * AtomToBondRatio) * 100; #0.23 is the default vWradius scaling (23%) in JMol for C. Lowered to make sure that atoms do not merge and keep the bond visible; 
-var spacefill_percent = point(spacefill_scale + 0.5); # Round up
-# Ensure spacefill_scale_corrected does not exceed 50% - just by looking, empiric, needs to be determined
-var spacefill_scale_corrected = spacefill_percent; # Default to calculated value
-
-if (spacefill_percent > 50) {
-    spacefill_scale_corrected = 50;
-}
-
-# Apply corrected spacefill percentage
-spacefill @spacefill_scale_corrected%;
+# Compute and apply rendering factor for atoms (ensuring rounding)
+#var scaledPercent = point((((bonds_radius * 2)*AtomToBondRatio) / AtomScalingFactor) * 100 + 0.5);
+#spacefill @scaledPercent%;
 
 print "-----debugg values for checking new formulas---------";
+print "PrintScaleFactor " + PrintScaleFactor;
 print "JMolRenderFactor " + JMolRenderFactor;
+print "scaledPercent " + scaledPercent;
 print "bonds_radius " + bonds_radius;
-print "spacefill_scale " + spacefill_scale;
-print "spacefill_scale_corrected " + spacefill_scale_corrected;
-Write script_latest_run.stl
-
-
-# Display the measurements in the Jmol window - does not work
-#set echo top center;
-#echo "Bounding Box Measurements:";
-#echo maxLabel + " = " + maxDim + " Å";
-#echo "Volume = " + volume + " Å³";
+var check = (bonds_radius * 2)*AtomToBondRatio
+print "check " + check;
+write test.stl
