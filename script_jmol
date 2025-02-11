@@ -168,25 +168,32 @@ print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; A
 #first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works, dont understand how,the scripting works
 
 # Computation of rendering factors for diffrent visualisation styles
-# Compute ball and stick rendering factor related to the default rendering radius of a C-C bond of 0.15 A;
-var BallStickRenderFactor = (MinPrintedObjDimen / 2) / (PrintScaleFactor * 0.15);
+# Compute JMol render factor;
+var JMolRenderFactor = MinPrintedObjDimen/PrintScaleFactor;
 
 #Apply rendering factor for bonds
-var bonds_radius = BallStickRenderFactor * 0.15;
+var bonds_radius = JMolRenderFactor / 2;
 wireframe @bonds_radius; 
 
 #Apply rendering factor for atoms
-# Compute the space fill size as a percentage
-var spacefill_scale = (BallStickRenderFactor * 0.2)*100; #0.23 is the default vWradius scaling (23%) in JMol for C. Lowered to make sure that atoms do not merge and keep the bond visible; 
-var spacefill_percent = point(spacefill_scale + 0.5); #round up
-# Directly apply the space fill size (without eval)
-spacefill @spacefill_percent%;
+# Compute the spacefill size as a percentage
+var spacefill_scale = (JMolRenderFactor * 0.3 * AtomToBondRatio) * 100; #0.23 is the default vWradius scaling (23%) in JMol for C. Lowered to make sure that atoms do not merge and keep the bond visible; 
+var spacefill_percent = point(spacefill_scale + 0.5); # Round up
+# Ensure spacefill_scale_corrected does not exceed 45
+var spacefill_scale_corrected = spacefill_percent; # Default to calculated value
+
+if (spacefill_percent > 50) {
+    spacefill_scale_corrected = 50;
+}
+
+# Apply corrected spacefill percentage
+spacefill @spacefill_scale_corrected%;
 
 print "-----debugg values for checking new formulas---------";
-#print "BallStickRenderFactor " + BallStickRenderFactor;
-#print "bonds_radius " + bonds_radius;
-#print "spacefill_scale " + spacefill_scale;
-#print "spacefill_percent " + spacefill_percent;
+print "JMolRenderFactor " + JMolRenderFactor;
+print "bonds_radius " + bonds_radius;
+print "spacefill_scale " + spacefill_scale;
+print "spacefill_scale_corrected " + spacefill_scale_corrected;
 Write script_latest_run.stl
 
 
