@@ -1,9 +1,11 @@
 # This is the initial loading and preparation of the molecule.
 # Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
-#Load=2hhb
-#Load=1ins
-#Load=2bna
-load :aspirin
+#Load=7K00 #ribosome - extreamly large
+#Load=4ins #small protein
+#Load=2hhb #large protein
+#Load=4rna #tRNA, printing in balls and sticks was difficult
+#Load=2bna #DNA, printing in balls and sticks was easy
+load :aspirin #small molecule, printing in balls and sticks at 100% is recomended
 SET pdbAddHydrogens
 delete water
 
@@ -104,8 +106,10 @@ var MinPrintScaleFactor = MinPrintScaleFactorBallStick; #temporary, will need to
 
 # Setting up the final print and rendering scale (PrintScaleFactor)
 var PrintScaleFactor = MaxPrintScaleFactor; #will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
+# Compute JMol render factor to be used later for rendering objects in JMol;
+var JMolRenderFactor = MinPrintedObjDimen/PrintScaleFactor;
 
-# calculation of the print and scale factors is now complete
+# calculation of the print and render factors is now complete
 
 # Display results in the console (needs to be edited in the final version of the script for debugging.
 print "Maximum dimension of the boundbox:";
@@ -167,10 +171,7 @@ print "--------------------------------------------";
 print "Rendering molecule based on the PrintScaleFactor = MaxPrintScaleFactor; All models are rendered to be printed at the indicated maximum printing scale, not lower. Will try to implement scale sugestions or user selectable scales later";
 #first attempts to scale items in JMol based on PrintScaleFactor. Math is right and kind of works, dont understand how,the scripting works
 
-# Computation of rendering factors for diffrent visualisation styles
-# Compute JMol render factor;
-var JMolRenderFactor = MinPrintedObjDimen/PrintScaleFactor;
-
+# Computate and apply MolRenderFactor rendering factor for each visualisation styles
 #Apply rendering factor for bonds
 var bonds_radius = JMolRenderFactor / 2;
 wireframe @bonds_radius; 
