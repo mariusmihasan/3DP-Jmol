@@ -8,8 +8,8 @@
 load :aspirin #small molecule, printing in balls and sticks at 100% is recomended
 SET pdbAddHydrogens
 delete water
-
-# First we look at how big the molecule is, as this dictates the final maximum printing scale in the slicer (Prusa, Cura, Orca, etc). This is done by calculating the bounding box X, Y, and Z dimensions and identifying the largest dimension (var maxDim in this script).
+#First step is to get some info related to the target molecule: size, smallest atom diameter, smallest bond length;
+# Estimating size - - this dictates the final maximum printing scale in the slicer (Prusa, Cura, Orca, etc). This is done by calculating the bounding box X, Y, and Z dimensions and identifying the largest dimension (var maxDim in this script).
 # Enable the bounding box
 boundbox on;
 refresh;
@@ -67,6 +67,7 @@ if (depth > maxDim) {
 boundbox off;
 
 # The largest dimension as maxDim calculation is complete. 
+# here we need to determine the diameter/radius of the smallest atom and the length of the smallest bond.
 
 # Here we set-up and list all technical variables related to the 3d-printers, dimensions, thresholds etc. These are important for calculations and are defined here for easy modification.
  
