@@ -1,1 +1,209 @@
 
+// This is the initial loading and preparation of the molecule.
+// Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
+//Load*8jiv //ribosome from EBI - extreamly large
+//Load=4ins //small protein
+//Load=2hhb //large protein
+//Load=4rna //tRNA, printing in balls and sticks was difficult
+//Load=2bna //DNA, printing in balls and sticks was easy
+load :aspirin //small molecule, printing in balls and sticks at 100% is recomended
+SET pdbAddHydrogens
+delete water
+print "- Reading information related to the molecule: size, smallest atom diameter, smallest bond length";
+//First step is to get some info related to the target molecule: size, smallest atom diameter, smallest bond length;
+// Estimating size - this dictates the final maximum printing scale in the slicer (Prusa, Cura, Orca, etc). This is done by calculating the bounding box X, Y, and Z dimensions and identifying the largest dimension (var maxDim in this script).
+// Enable the bounding box
+boundbox on;
+refresh;
+
+// Retrieve bounding box properties
+var centerStr = getProperty("boundBoxInfo", "center");
+var corner0Str = getProperty("boundBoxInfo", "corner0");
+var corner1Str = getProperty("boundBoxInfo", "corner1");
+var vectorStr = getProperty("boundBoxInfo", "vector");
+
+// Convert extracted properties into numerical arrays
+var center = [ centerStr.x, centerStr.y, centerStr.z ];
+var corner0 = [ corner0Str.x, corner0Str.y, corner0Str.z ];
+var corner1 = [ corner1Str.x, corner1Str.y, corner1Str.z ];
+var vector = [ vectorStr.x, vectorStr.y, vectorStr.z ];
+
+// Ensure the values are retrieved before proceeding
+if (center == null || corner0 == null || corner1 == null || vector == null) {
+  print "ERROR: Bounding box data not retrieved.";
+  exit;
+}
+
+// Calculate dimensions using vector
+var length = 2 * vector[0];  // X-axis (width)
+var height = 2 * vector[1];  // Y-axis (height)
+var depth = 2 * vector[2];   // Z-axis (depth)
+
+// // Alternative method (verification check)
+var length_check = corner1[0] - corner0[0];
+var height_check = corner1[1] - corner0[1];
+var depth_check = corner1[2] - corner0[2];
+
+// Ensure consistency
+if (abs(length - length_check) > 0.1 || abs(height - height_check) > 0.1 || abs(depth - depth_check) > 0.1) {
+    length = length_check;
+    height = height_check;
+    depth = depth_check;
+}
+
+// Calculate volume
+var volume = length * height * depth;
+
+// Determine the largest dimension
+var maxDim = length;
+var maxLabel = "Length";
+
+if (height > maxDim) {
+    maxDim = height;
+    maxLabel = "Height";
+}
+if (depth > maxDim) {
+    maxDim = depth;
+    maxLabel = "Depth";
+}
+boundbox off;
+
+// The largest dimension as maxDim calculation is complete. 
+// Determine the the length of the shortest bond and the spacefill value of the smaleest and largest atoms. Useful for estimating  rendering corections. 
+// Retrieve bond length information and calculate MinBondLength 
+var bondLengths = getProperty("bondInfo", "length_Ang")
+// Initialize MinBondLength with a large value
+var MinBondLength = 10 
+// Determine the minimum bond length (1-based index)
+for (var i = 1; i <= bondLengths.length; i = i + 1) {
+    if (bondLengths[i] < MinBondLength) {
+        MinBondLength = bondLengths[i]
+    }
+}
+
+// Retrieve the atom information containing spacefill values
+var atomData = getProperty("atomInfo");
+
+// Initialize the smallest and largest spacefill values with extreme initial values
+var minSpacefill = 10;  // Arbitrary large initial value
+var maxSpacefill = 0;   // Arbitrary small initial value
+
+// Loop through the atoms and find the minimum and maximum spacefill values
+for (var i = 1; i < atomData.length; i++) {
+    var spacefillValue = atomData[i].spacefill;
+    if (spacefillValue < minSpacefill) {
+        minSpacefill = spacefillValue;
+    }
+    if (spacefillValue > maxSpacefill) {
+        maxSpacefill = spacefillValue;
+    }
+}
+
+print "-- Setting up 3D printing environment ";
+// Here we set-up and list all technical variables related to the 3d-printers, dimensions, thresholds etc. These are important for calculations and are defined here for easy modification.
+ 
+var JMolStlScale = 10.0; // Jmol exports 1 A as 10 mm. This means that all dimesnions in Jmol are exported 10x larger. We will do all math in A, and for the final result in mm with will multiply this. We will keep it here for reference and in case JMol changes this in the future.
+
+var MinPrintedObjDimen = 3.0 / JMolStlScale; //minimum printed dimension of an object (bond, or thikness). In the paper is 2.6. We will use 3 mm for more sturdy models. Divided by the JMolStlScale as we work in A. Some limits (atoms vWr % in this script, maybe other, will depend on this)
+
+var RefBondLength = 2.86; //dimension of a C-C and peptide length in A used to calculate minimum printing scale. Based on Math, needs validation by printing
+
+var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen //ratio between an C atom diameter and a covalent bond thicknes
+// Calculate the AtomToBondLengthRatio value based on the diameter of the smallest atom and the length of the shortest length;
+var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
+
+// Define scaling factor for atom space fill relative to MinPrintedObjDimen. 0.23 is default scalling for a C atom in Jmol, 0.2 is default scalling for a H atom in Jmol
+var AtomScalingFactor = 0.23; // Adjust this if needed based on printing results
+
+var PrintBedMinDimension = 210.0 / JMolStlScale; // Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and divided by the JMolStlScale as we work in A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
+
+//Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how max and min the objects are rendred in JMol related to the final printing scale. 
+
+// Ball and Stick Model
+var MaxRendScaleFactorBallStick = 1.36 / MinPrintedObjDimen / JMolStlScale; //final based on Math, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
+var MinRendScaleFactorBallStick = (2.0 * MinPrintedObjDimen) / RefBondLength; //this needs testing and adjusting. Math is based for now on MinPrintedObjDimen which is diameter. But math needs to be made on length - ie minimal length at which atoms start to merge; 
+
+// Sticks (Backbone Representation) — will continue here
+var MaxRendScaleFactorBackbone = 0.2; //temporary, needs math
+var MinRendScaleFactorBackbone = 1; //temporary, from the paper, needs math
+
+// End of the section related to technical variables of the 3d-printers, dimensions, thresholds, etc.
+
+// Next is to calculate the maximum and minimum rendering scale factors for the maximum and minimum print scale. The final print scale is decided/sugested
+// Maximum print scale (MaxPrintScale) depends on the minimum print bed dimension (X, Y, or Z) and maxDim.
+// Calculate MaxPrintScaleFactor - planned to be used for scaling dimensions later.
+var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
+
+// Calculate MinPrintScale - the smallest scale at which the model can be printed which will be dependent on the rendering style. Math here is for the BallStick, will need to implement a function for each style of visualisation
+var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
+//var MinPrintScaleFactorSurface etc = need to define for each rendering styles
+
+// Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
+var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
+
+// Setting up the final print and rendering scale (PrintScaleFactor)
+var PrintScaleFactor = 1#MaxPrintScaleFactor; //will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
+
+// calculation of the print and render factors is now complete
+
+// Display results in the console (needs to be edited in the final version of the script for debugging.
+print "Maximum dimension of the boundbox:";
+print maxLabel + " = " + maxDim + " Å";
+print "Volume = " + volume + " Å³";
+// - just to check calculations and always understand the difference and have ready values for MaxPrintScale, MaxPrintScaleFactor, MinPrintScale, MinPrintScaleFactor
+print "MaxPrint Scale Factor: " + MaxPrintScaleFactor;
+print "MinPrint Scale Factor: " + MinPrintScaleFactor;
+print "----------------------------------------------";
+print "--- Start for 3D Printing RECOMMENDATIONS ----";
+
+//Calculate min and max printing scale in % to be displayed
+var MaxPrintScale = MaxPrintScaleFactor*100;
+var MinPrintScale = MinPrintScaleFactor*100;
+
+// rounding up scale values for display
+var MaxPrintScale_round = point(MaxPrintScale + 0.5);    // rounding up
+var MinPrintScale_round = point(MinPrintScale + 0.5);    // rounding up
+
+// text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
+
+print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer. Using SLA printers is possible, but not yet tested.";
+
+// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section. The 0.3 value is arbitrary and requires adjustment.
+
+if (MaxPrintScaleFactor > MaxRendScaleFactorBallStick) {
+    print "Your molecule is rather small. All renderings are suitable and can be printed.";
+} else if (MaxPrintScaleFactor >= MaxRendScaleFactorBackbone) {
+    print "Your molecule is medium sized. Only printing it as a cartoon or surface is recommended";
+} else {
+    print "Your molecule is rather large. We are not ready for this yet.";
+}
+
+// Output approximate real-world print dimensions in mm at MaxPrintScale 
+// Compute raw values first
+var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var max_length_mm = point(max_length_raw + 0.5);  // rounding up
+var max_height_mm = point(max_height_raw + 0.5);  // rounding up
+var max_depth_mm = point(max_depth_raw + 0.5);    // rounding up
+print "Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+
+// Output approximate real-world print dimensions in mm at MinPrintScale 
+// Compute raw values first
+var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var min_length_mm = point(min_length_raw + 0.5);  // rounding up
+var min_height_mm = point(min_height_raw + 0.5);  // rounding up
+var min_depth_mm = point(min_depth_raw + 0.5);    // rounding up
+print "Printed at a minimum allowed printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+
+print "--- End for 3D Printing RECOMMENDATIONS ----";
+print "--------------------------------------------";
+// Computate and apply rendering factor for each visualization style
+//For Atoms and Sticks
+// Compute bonds render factor to be used later for rendering objects in JMol;
+var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
+wireframe @bonds_radius; 
