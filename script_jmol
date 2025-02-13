@@ -207,7 +207,7 @@ print "--------------------------------------------";
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
 wireframe @bonds_radius; 
 // Compute scaling factor for atoms as %;
-var AtomsScaledPercent = point((MinPrintedObjDimen/(minSpacefill / AtomScalingFactor) ) * 100 + 0.5);
+var AtomsScaledPercent = point(((MinPrintedObjDimen/PrintScaleFactor)/(minSpacefill / AtomScalingFactor) ) * 100 + 0.5);
 
 
 // calculate 
