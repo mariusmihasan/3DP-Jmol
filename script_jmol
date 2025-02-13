@@ -1,3 +1,4 @@
+
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //Load*8jiv //ribosome from EBI - extreamly large
@@ -226,14 +227,21 @@ var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
 var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 5 + 0.5); 
 // Ensure AtomsScaledPercent does not exceed any of the maxAtomsScale.
 
-var AtomsScaledPercent_corrected = AtomsScaledPercent
-if (AtomsScaledPercent_corrected < AtomsScaledPercentMax2) {
-    AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+
+// Determine the higher value between AtomsScaledPercentMax2 and AtomsScaledPercentMax
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+
+// If AtomsScaledPercent_corrected is greater than AtomsScaledPercentMax2 OR AtomsScaledPercentMax, set it to the larger of the two
+if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
+    if (AtomsScaledPercentMax2 > AtomsScaledPercentMax) {
+        AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
+    } else {
+        AtomsScaledPercent_corrected = AtomsScaledPercentMax;
+    }
 }
 
-if (AtomsScaledPercent_corrected < AtomsScaledPercentMax) {
-    AtomsScaledPercent_corrected = AtomsScaledPercentMax;
-}
+
 
 spacefill @AtomsScaledPercent_corrected%;
 
