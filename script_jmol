@@ -149,7 +149,7 @@ var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
 var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
 
 // Setting up the final print and rendering scale (PrintScaleFactor)
-var PrintScaleFactor = 0.35#MaxPrintScaleFactor; //will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
+var PrintScaleFactor = 0.6#MaxPrintScaleFactor; //will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
 
 // calculation of the print and render factors is now complete
 
@@ -223,7 +223,8 @@ var AtomsScaledPercent = point(((minSpacefill * AtomScalingFactor) / (MinPrinted
 // Set-up limits for the max AtomsScaledPercent depending on the MinBondLength (largest two atoms will never overlap the shortest bond)
 var MaxAtomReqSize = MinBondLength * PrintScaleFactor / 2
 var ActualMaxAtomReqSize = maxSpacefill
-var AtomsScaledPercentMax = point(((MinBondLength * PrintScaleFactor ) / maxSpacefill ) *100 + 0.5);
+#var AtomsScaledPercentMax = point(((MinBondLength * PrintScaleFactor ) / maxSpacefill ) *100 + 0.5);
+var AtomsScaledPercentMax = point(((maxSpacefill * AtomScalingFactor) / (MinBondLength / 2 * PrintScaleFactor) * 100)+ 0.5);
 
 // First limits for the max AtomsScaledPercent depending on the bonds_radius (smalest atoms will not be covered by thick bonds)
 var MaxAtomReqSize2 = bonds_radius * 2
@@ -255,14 +256,14 @@ print "Largest Spacefill Value: " + maxSpacefill + " Å";
 print "Smalest Spacefill Value: " + minSpacefill + " Å";
 print "MaxAtomReqSize: " + MaxAtomReqSize + " Å";
 print "ActualMaxAtomReqSize: " + ActualMaxAtomReqSize + " Å";
-print "AtomsScaledPercentMax: " + AtomsScaledPercentMax + " Å";
+print "AtomsScaledPercentMax: " + AtomsScaledPercentMax + " %";
 print "MaxAtomReqSize2: " + MaxAtomReqSize2 + " Å";
 print "ActualMaxAtomReqSize2: " + ActualMaxAtomReqSize2 + " Å";
-print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " Å";
+print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
 
 
 
-print "AtomsScaledPercent: " + AtomsScaledPercent;
+print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 
 var check = maxSpacefill * AtomScalingFactor
 print "check " + check;
