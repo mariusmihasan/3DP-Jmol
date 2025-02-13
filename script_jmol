@@ -1,4 +1,3 @@
-
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //Load*8jiv //ribosome from EBI - extreamly large
@@ -149,7 +148,7 @@ var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
 var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
 
 // Setting up the final print and rendering scale (PrintScaleFactor)
-var PrintScaleFactor = 0.6#MaxPrintScaleFactor; //will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
+var PrintScaleFactor = 0.3#MaxPrintScaleFactor; //will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
 
 // calculation of the print and render factors is now complete
 
@@ -220,30 +219,23 @@ var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
 var ActualAtomReqSize = minSpacefill
 var AtomsScaledPercent = point(((minSpacefill * AtomScalingFactor) / (MinPrintedObjDimen * PrintScaleFactor) * 100)+ 0.5);
 
-// Set-up limits for the max AtomsScaledPercent depending on the MinBondLength (largest two atoms will never overlap the shortest bond)
-var MaxAtomReqSize = MinBondLength * PrintScaleFactor / 2
-var ActualMaxAtomReqSize = maxSpacefill
-#var AtomsScaledPercentMax = point(((MinBondLength * PrintScaleFactor ) / maxSpacefill ) *100 + 0.5);
-var AtomsScaledPercentMax = point(((maxSpacefill * AtomScalingFactor) / (MinBondLength / 2 * PrintScaleFactor) * 100)+ 0.5);
+// Set-up limits for the max AtomsScaledPercent depending on the MinBondLength (largest two atoms will never overlap over the shortest bond)
+var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
 
 // First limits for the max AtomsScaledPercent depending on the bonds_radius (smalest atoms will not be covered by thick bonds)
-var MaxAtomReqSize2 = bonds_radius * 2
-var ActualMaxAtomReqSize2 = minSpacefill
-var AtomsScaledPercentMax2 = point(((bonds_radius * 2 / minSpacefill) / AtomScalingFactor) + 0.5);
+var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 5 + 0.5); 
+// Ensure AtomsScaledPercent does not exceed any of the maxAtomsScale.
 
+var AtomsScaledPercent_corrected = AtomsScaledPercent
+if (AtomsScaledPercent_corrected < AtomsScaledPercentMax2) {
+    AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
+}
 
+if (AtomsScaledPercent_corrected < AtomsScaledPercentMax) {
+    AtomsScaledPercent_corrected = AtomsScaledPercentMax;
+}
 
-
-// Ensure AtomsScaledPercent does not exceed maxAtomsScale. That is the largest atoms does not go over the middle of the smalles bond and hence making the bonds invisible.
-#if (AtomsScaledPercent < ActualMaxAtomReqSize) {
-#    AtomsScaledPercent = ActualMaxAtomReqSize;
-#}
-#
-#if (AtomsScaledPercent > AtomsScaledPercentMax2) {
-#    AtomsScaledPercent = AtomsScaledPercentMax2;
-#}
-
-spacefill @AtomsScaledPercent%;
+spacefill @AtomsScaledPercent_corrected%;
 
 
 
@@ -262,7 +254,7 @@ print "ActualMaxAtomReqSize2: " + ActualMaxAtomReqSize2 + " Å";
 print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
 
 
-
+print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 
 var check = maxSpacefill * AtomScalingFactor
