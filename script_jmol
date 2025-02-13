@@ -1,3 +1,4 @@
+
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //Load*8jiv //ribosome from EBI - extreamly large
@@ -68,7 +69,7 @@ if (depth > maxDim) {
 boundbox off;
 
 // The largest dimension as maxDim calculation is complete. 
-// Determine the diameter/radius of the largest atom and the length of the shortest bond.
+// Determine the the length of the shortest bond and the spacefill value of the smaleest and largest atoms. Useful for estimating  rendering corections. 
 // Retrieve bond length information and calculate MinBondLength 
 var bondLengths = getProperty("bondInfo", "length_Ang")
 // Initialize MinBondLength with a large value
@@ -79,20 +80,27 @@ for (var i = 1; i <= bondLengths.length; i = i + 1) {
         MinBondLength = bondLengths[i]
     }
 }
-// Print the minimum bond length
-print "Minimum Bond Length: " + MinBondLength + " Å" // can be removed later
 // Retrieve the atom spacefill values from the atomInfo
-var atomRadii = getProperty("atomInfo", "spacefill");
-// Initialize the largest spacefill with a large value
-var MaxSpacefill = 0.1;  // Set an arbitrarily small number to ensure it's updated during comparison
-// Loop through the atom spacefill and find the largest value
-for (var i = 1; i <= atomSpacefill.length; i++) {
-    if (atomSpacefill[i] > MaxSpacefill) {
-        MaxSpacefill = atomSpacefill[i];
+load :aspirin // Example molecule, adjust as needed
+
+// Retrieve the atom information containing spacefill values
+var atomData = getProperty("atomInfo");
+
+// Initialize the smallest and largest spacefill values with extreme initial values
+var minSpacefill = 10;  // Arbitrary large initial value
+var maxSpacefill = 0;   // Arbitrary small initial value
+
+// Loop through the atoms and find the minimum and maximum spacefill values
+for (var i = 1; i < atomData.length; i++) {
+    var spacefillValue = atomData[i].spacefill;
+    if (spacefillValue < minSpacefill) {
+        minSpacefill = spacefillValue;
+    }
+    if (spacefillValue > maxSpacefill) {
+        maxSpacefill = spacefillValue;
     }
 }
-// Print the largest atom spacefill
-print "Largest Atom Spacefill: " + MaxSpacefill + " Å";  // Optional output for debugging
+
 print "-- Setting up 3D printing environment ";
 // Here we set-up and list all technical variables related to the 3d-printers, dimensions, thresholds etc. These are important for calculations and are defined here for easy modification.
  
