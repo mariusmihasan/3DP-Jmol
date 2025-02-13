@@ -9,8 +9,8 @@
 load :aspirin //small molecule, printing in balls and sticks at 100% is recomended
 SET pdbAddHydrogens
 delete water
-print "- Reading information related to the molecule: size, smallest atom diameter, smallest bond length";
-//First step is to get some info related to the target molecule: size, smallest atom diameter, smallest bond length;
+print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
+// First step is to get some info related to the target molecule: size, smallest and largest atom, smallest bond length;
 // Estimating size - this dictates the final maximum printing scale in the slicer (Prusa, Cura, Orca, etc). This is done by calculating the bounding box X, Y, and Z dimensions and identifying the largest dimension (var maxDim in this script).
 // Enable the bounding box
 boundbox on;
@@ -69,7 +69,7 @@ if (depth > maxDim) {
 boundbox off;
 
 // The largest dimension as maxDim calculation is complete. 
-// Determine the the length of the shortest bond and the spacefill value of the smaleest and largest atoms. Useful for estimating  rendering corections. 
+// Determine the the length of the shortest bond and the spacefill value of the smalest and largest atoms. Useful for estimating  rendering corections. 
 // Retrieve bond length information and calculate MinBondLength 
 var bondLengths = getProperty("bondInfo", "length_Ang")
 // Initialize MinBondLength with a large value
@@ -81,9 +81,6 @@ for (var i = 1; i <= bondLengths.length; i = i + 1) {
     }
 }
 // Retrieve the atom spacefill values from the atomInfo
-load :aspirin // Example molecule, adjust as needed
-
-// Retrieve the atom information containing spacefill values
 var atomData = getProperty("atomInfo");
 
 // Initialize the smallest and largest spacefill values with extreme initial values
@@ -114,8 +111,8 @@ var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen //ratio between an C atom di
 // Calculate the AtomToBondLengthRatio value based on the diameter of the smallest atom and the length of the shortest length;
 var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
 
-// Define scaling factor for atom space fill relative to MinPrintedObjDimen. 0.23 is default scalling for a C atom in Jmol, 0.2 is default scalling for a H atom in Jmol
-var AtomScalingFactor = 0.23; // Adjust this if needed based on printing results
+// Define scaling factor for atom space fill as I do not know radii. 0.23 is default scalling for a C atom in Jmol, 0.2 is default scalling for a H atom in Jmol
+var AtomScalingFactor = 0.20; // Adjust this if needed based on printing results
 
 var PrintBedMinDimension = 210.0 / JMolStlScale; // Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and divided by the JMolStlScale as we work in A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
 
@@ -206,35 +203,33 @@ print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 // Computate and apply rendering factor for each visualization style
 //For Atoms and Sticks
-// Compute bonds render factor to be used later for rendering objects in JMol;
+// Compute and apply bonds dimensions;
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
 wireframe @bonds_radius; 
+// Compute scaling factor for atoms as %;
+var AtomsScaledPercent = point((MinPrintedObjDimen/(minSpacefill / AtomScalingFactor) ) * 100 + 0.5);
 
-// Compute and apply rendering factor for atoms expressed as vWr % (ensuring rounding)
-var AtomsScaledPercent = point((AtomScalingFactor / MinPrintedObjDimen ) * 100 + 0.5);
+
 // calculate 
 // Ensure AtomsScaledPercent does not exceed 55%. This value was chosen visually in JMol so that at MinScaleFactor and depends on the MinPrintedObjDimen 
 // if (AtomsScaledPercent > 55) {
 //     AtomsScaledPercent = 55;
 // }
-var ScaledMinBondLength = (MinBondLength * JMolRenderFactor)
-var MaxvWR = MaxSpacefill / AtomScalingFactor
-var ScaledMaxSpacefill = MaxvWR / JMolRenderFactor
 
 spacefill @AtomsScaledPercent%;
 
+
 print "-----debugg values for checking new formulas---------";
 print "PrintScaleFactor " + PrintScaleFactor;
-print "JMolRenderFactor " + JMolRenderFactor;
 print "AtomsScaledPercent " + AtomsScaledPercent;
 print "bonds_radius " + bonds_radius;
 print "MinBondLength " +MinBondLength;
 print "ScaledMinBondLength " +ScaledMinBondLength;
-print "MaxSpacefill " +MaxSpacefill;
-print "MaxvWR " +MaxvWR;
-print "ScaledMaxSpacefill " + ScaledMaxSpacefill;
+print "Smallest Spacefill Value: " + minSpacefill + " Å";
+print "Largest Spacefill Value: " + maxSpacefill + " Å";
 
-var check = ScaledMaxRadius
+
+var check = AtomsScaleFactor
 print "check " + check;
 write test.stl
 #minRadius) / MinBondLength;
