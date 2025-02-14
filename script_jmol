@@ -3,12 +3,12 @@
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //Load*8jiv //ribosome from EBI - extreamly large
 //Load=4ins //small protein
-//Load=2hhb //large protein
+Load=2hhb //large protein
 //Load=4rna //tRNA, printing in balls and sticks was difficult
-Load=2bna //DNA, printing in balls and sticks was easy 
+//Load=2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recomended
-
-//SET pdbAddHydrogens
+//Setting up and applying visualisation styles
+SET pdbAddHydrogens
 delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA];
 calculate hbonds
 set hbonds solid
@@ -16,6 +16,7 @@ color hbonds white
 calculate struts 
 color struts magenta
 #this is where the script from Angel cames into place to add or nor struts between the ligands and protein
+
 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
 // First step is to get some info related to the target molecule: size, smallest and largest atom, smallest bond length;
@@ -124,34 +125,15 @@ var AtomScalingFactor = 0.20; // Adjust this if needed based on printing results
 
 var PrintBedMinDimension = 210.0 / JMolStlScale; // Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and divided by the JMolStlScale as we work in A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
 
-//Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how max and min the objects are rendred in JMol related to the final printing scale. 
+// End of the section related to technical variables of the 3d-printers and dimensions, etc.
 
-// Ball and Stick Model
-var MaxRendScaleFactorBallStick = 1.36 / MinPrintedObjDimen / JMolStlScale; //final based on Math, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
-var MinRendScaleFactorBallStick = (MinPrintedObjDimen * 2) / RefBondLength; //this needs testing and adjusting.
-#var MinRendScaleFactorBallStick = minSpacefill/(MinPrintedObjDimen * 2); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
-
-// Sticks (Backbone Representation) — will continue here
-var MaxRendScaleFactorBackbone = 0.2; //temporary, needs math
-var MinRendScaleFactorBackbone = 1; //temporary, from the paper, needs math
-
-// End of the section related to technical variables of the 3d-printers, dimensions, thresholds, etc.
-
-// Next is to calculate the maximum and minimum rendering scale factors for the maximum and minimum print scale. The final print scale is decided/sugested
-// Maximum print scale (MaxPrintScale) depends on the minimum print bed dimension (X, Y, or Z) and maxDim.
-// Calculate MaxPrintScaleFactor - planned to be used for scaling dimensions later.
+// Next is to calculate the scale factor for the maximum print. Maximum print scale (MaxPrintScale) depends on the minimum print bed dimension (X, Y, or Z) and maxDim. The final print scale is decided/sugested later
+// Calculate MaxPrintScaleFactor - used for scaling dimensions later.
 var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
-// Calculate MinPrintScale - the smallest scale at which the model can be printed which will be dependent on the rendering style. Math here is for the BallStick, will need to implement a function for each style of visualisation
-var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
-//var MinPrintScaleFactorSurface etc = need to define for each rendering styles
+// Setting up the print scale (PrintScaleFactor). Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100% if are small enough - will not scale the small molecules from PubChem to ridiculous sizes. Can switch between user selectable and MaxPrintScaleFactor ;
 
-// Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
-var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
-
-// Setting up the final print and rendering scale (PrintScaleFactor). Now is MaxPrintScaleFactor, hopefully it will be  user selectable in the future. Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100 if are small enough - will not sclae the small molecules from PubChem to ridiculous sizes;
-
-var PrintScaleFactorUser = 0.25;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+var PrintScaleFactorUser = 0.36;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
 
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
@@ -167,11 +149,64 @@ if (PrintScaleFactorUser == 0) {  // Correct comparison: '==' not '= ='
     PrintScaleFactor = PrintScaleFactorUser;
 }
 
-// calculation of the print and render factors is now complete
+// calculation of the print factors is now complete
 
-// Display results in the console (needs to be edited in the final version of the script for debugging.
-print "Maximum dimension of the boundbox:";
-print maxLabel + " = " + maxDim + " Å";
+// Computate and apply rendering factor for each visualization style
+//For Atoms and Sticks
+// Compute and apply bonds dimensions;
+var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
+wireframe @bonds_radius; 
+var bond_radius_hbonds = bonds_radius*0.9
+var bond_radius_struts = bonds_radius*0.8
+hbonds @bond_radius_hbonds;
+struts @bond_radius_struts;
+// Compute scaling factor for atoms as %;
+var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
+var ActualAtomReqSize = minSpacefill
+var AtomsScaledPercent = point(((minSpacefill * AtomScalingFactor) / (MinPrintedObjDimen * PrintScaleFactor) * 100)+ 0.5);
+
+// Set-up limits for the max AtomsScaledPercent depending on the MinBondLength (largest two atoms will never overlap over the shortest bond)
+var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
+
+// First limits for the max AtomsScaledPercent depending on the bonds_radius (smalest atoms will not be covered by thick bonds)
+var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 5 + 0.5); 
+// Ensure AtomsScaledPercent does not exceed any of the maxAtomsScale.
+
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+
+// Determine the higher value between AtomsScaledPercentMax2 and AtomsScaledPercentMax
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+
+// If AtomsScaledPercent_corrected is greater than AtomsScaledPercentMax2 OR AtomsScaledPercentMax, set it to the larger of the two
+if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
+    if (AtomsScaledPercentMax2 > AtomsScaledPercentMax) {
+        AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
+    } else {
+        AtomsScaledPercent_corrected = AtomsScaledPercentMax;
+    }
+}
+spacefill @AtomsScaledPercent_corrected%;
+
+// end of rendering setup for balls and sticks
+
+// Calculating theresholds for each visualisation style, deciding print scales and outputing real-world dimensions of the final print;
+
+//Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how max and min the objects are rendred in JMol related to the final printing scale. 
+
+// Ball and Stick Model
+var MaxRendScaleFactorBallStick = 1.36 / MinPrintedObjDimen / JMolStlScale; //final based on Math, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
+var MinRendScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
+
+// Sticks (Backbone Representation) — will continue here
+var MaxRendScaleFactorBackbone = 0.2; //temporary, needs math
+var MinRendScaleFactorBackbone = 1; //temporary, from the paper, needs math
+
+// Calculate MinPrintScale - the smallest scale at which the model can be printed which will be dependent on the rendering style. Math here is for the BallStick, will need to implement a function for each style of visualisation
+var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
+//var MinPrintScaleFactorSurface etc = need to define for each rendering styles
+
+// Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
+var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
 
 print "----------------------------------------------";
 print "--- Start for 3D Printing RECOMMENDATIONS ----";
@@ -237,43 +272,8 @@ print "Printed at the curent scale/user selected scale of " + PrintScale_round +
 
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
-// Computate and apply rendering factor for each visualization style
-//For Atoms and Sticks
-// Compute and apply bonds dimensions;
-var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
-wireframe @bonds_radius; 
-var bond_radius_hbonds = bonds_radius*0.9
-var bond_radius_struts = bonds_radius*0.8
-hbonds @bond_radius_hbonds;
-struts @bond_radius_struts;
-// Compute scaling factor for atoms as %;
-var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
-var ActualAtomReqSize = minSpacefill
-var AtomsScaledPercent = point(((minSpacefill * AtomScalingFactor) / (MinPrintedObjDimen * PrintScaleFactor) * 100)+ 0.5);
 
-// Set-up limits for the max AtomsScaledPercent depending on the MinBondLength (largest two atoms will never overlap over the shortest bond)
-var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
 
-// First limits for the max AtomsScaledPercent depending on the bonds_radius (smalest atoms will not be covered by thick bonds)
-var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 5 + 0.5); 
-// Ensure AtomsScaledPercent does not exceed any of the maxAtomsScale.
-
-var AtomsScaledPercent_corrected = AtomsScaledPercent;
-
-// Determine the higher value between AtomsScaledPercentMax2 and AtomsScaledPercentMax
-var AtomsScaledPercent_corrected = AtomsScaledPercent;
-
-// If AtomsScaledPercent_corrected is greater than AtomsScaledPercentMax2 OR AtomsScaledPercentMax, set it to the larger of the two
-if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
-    if (AtomsScaledPercentMax2 > AtomsScaledPercentMax) {
-        AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
-    } else {
-        AtomsScaledPercent_corrected = AtomsScaledPercentMax;
-    }
-}
-spacefill @AtomsScaledPercent_corrected%;
-
-print "-----debugg values for checking new formulas---------";
 print "-----debugg values for checking new formulas---------";
 print "PrintScaleFactor " + PrintScaleFactor;
 print "bonds_radius " + bonds_radius;
@@ -287,8 +287,6 @@ print "AtomsScaledPercentMax: " + AtomsScaledPercentMax + " %";
 print "MaxAtomReqSize2: " + MaxAtomReqSize2 + " Å";
 print "ActualMaxAtomReqSize2: " + ActualMaxAtomReqSize2 + " Å";
 print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
-
-
 print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 
