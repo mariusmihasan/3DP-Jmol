@@ -148,8 +148,13 @@ var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
 // Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
 var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
 
-// Setting up the final print and rendering scale (PrintScaleFactor)
-var PrintScaleFactor = 0.3#MaxPrintScaleFactor; //will continue with the largest but maybe it is good to either have have a way o recomending a suitable PrintScaleFactor based on the Min and Max, or user input.
+// Setting up the final print and rendering scale (PrintScaleFactor). Now is MaxPrintScaleFactor, hopefully it will be  user selectable maybe in the future. Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100 if are small enough;
+var PrintScaleFactor = 0.2; #=MaxPrintScaleFactor
+#if (MaxPrintScaleFactor < 1) {
+#    PrintScaleFactor = MaxPrintScaleFactor;
+#} else {
+#    PrintScaleFactor = 1;
+#}
 
 // calculation of the print and render factors is now complete
 
