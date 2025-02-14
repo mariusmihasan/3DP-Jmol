@@ -5,10 +5,10 @@
 //Load=4ins //small protein
 //Load=2hhb //large protein
 //Load=4rna //tRNA, printing in balls and sticks was difficult
-Load=2bna //DNA, printing in balls and sticks was easy
-//load :aspirin //small molecule, printing in balls and sticks at 100% is recomended
+Load=2bna //DNA, printing in balls and sticks was easy 
+//load :nicotine //small molecule, printing in balls and sticks at 100% is recomended
 
-SET pdbAddHydrogens
+//SET pdbAddHydrogens
 delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA];
 calculate hbonds
 set hbonds solid
@@ -128,7 +128,8 @@ var PrintBedMinDimension = 210.0 / JMolStlScale; // Introduce the PrintBedMinDim
 
 // Ball and Stick Model
 var MaxRendScaleFactorBallStick = 1.36 / MinPrintedObjDimen / JMolStlScale; //final based on Math, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
-var MinRendScaleFactorBallStick = (2.0 * MinPrintedObjDimen) / RefBondLength; //this needs testing and adjusting. Math is based for now on MinPrintedObjDimen which is diameter. But math needs to be made on length - ie minimal length at which atoms start to merge; 
+var MinRendScaleFactorBallStick = (MinPrintedObjDimen * 2) / RefBondLength; //this needs testing and adjusting.
+#var MinRendScaleFactorBallStick = minSpacefill/(MinPrintedObjDimen * 2); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
 
 // Sticks (Backbone Representation) — will continue here
 var MaxRendScaleFactorBackbone = 0.2; //temporary, needs math
@@ -148,13 +149,23 @@ var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
 // Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
 var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
 
-// Setting up the final print and rendering scale (PrintScaleFactor). Now is MaxPrintScaleFactor, hopefully it will be  user selectable maybe in the future. Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100 if are small enough;
-var PrintScaleFactor = 0.2; #=MaxPrintScaleFactor
-#if (MaxPrintScaleFactor < 1) {
-#    PrintScaleFactor = MaxPrintScaleFactor;
-#} else {
-#    PrintScaleFactor = 1;
-#}
+// Setting up the final print and rendering scale (PrintScaleFactor). Now is MaxPrintScaleFactor, hopefully it will be  user selectable in the future. Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100 if are small enough - will not sclae the small molecules from PubChem to ridiculous sizes;
+
+var PrintScaleFactorUser = 0.25;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+
+var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
+
+if (PrintScaleFactorUser == 0) {  // Correct comparison: '==' not '= ='
+    // When PrintScaleFactorUser is 0, apply the logic based on MaxPrintScaleFactor
+    if (MaxPrintScaleFactor < 1) {
+        PrintScaleFactor = MaxPrintScaleFactor;  // If MaxPrintScaleFactor is less than 1, use it
+    } else {
+        PrintScaleFactor = 1;  // Otherwise, set PrintScaleFactor to 1
+    }
+} else {
+    // When PrintScaleFactorUser is non-zero, set PrintScaleFactor to PrintScaleFactorUser
+    PrintScaleFactor = PrintScaleFactorUser;
+}
 
 // calculation of the print and render factors is now complete
 
@@ -168,10 +179,12 @@ print "--- Start for 3D Printing RECOMMENDATIONS ----";
 //Calculate min and max printing scale in % to be displayed
 var MaxPrintScale = MaxPrintScaleFactor*100;
 var MinPrintScale = MinPrintScaleFactor*100;
+var PrintScale = PrintScaleFactor*100;
 
 // rounding up scale values for display
 var MaxPrintScale_round = point(MaxPrintScale + 0.5);    // rounding up
 var MinPrintScale_round = point(MinPrintScale + 0.5);    // rounding up
+var PrintScale_round = point(PrintScale + 0.5);    // rounding up
 
 // text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
 
@@ -179,10 +192,12 @@ print "Rendering and printing recommendations are provided for a medium size (ie
 
 // Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section. The 0.3 value is arbitrary and requires adjustment.
 
-if (MaxPrintScaleFactor > MaxRendScaleFactorBallStick) {
+if (MaxPrintScaleFactor > 1) {
+    print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
+} else if (MaxPrintScaleFactor > MaxRendScaleFactorBallStick) {
     print "Your molecule is rather small. All renderings are suitable and can be printed.";
 } else if (MaxPrintScaleFactor >= MaxRendScaleFactorBackbone) {
-    print "Your molecule is medium sized. Only printing it as a cartoon or surface is recommended";
+    print "Your molecule is medium sized. Only printing it as a cartoon or surface is recommended.";
 } else {
     print "Your molecule is rather large. We are not ready for this yet.";
 }
@@ -208,6 +223,17 @@ var min_length_mm = point(min_length_raw + 0.5);  // rounding up
 var min_height_mm = point(min_height_raw + 0.5);  // rounding up
 var min_depth_mm = point(min_depth_raw + 0.5);    // rounding up
 print "Printed at a minimum allowed printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+
+// Output approximate real-world print dimensions in mm at curent scale/user 
+// Compute raw values first
+var user_length_raw = length * PrintScaleFactor * JMolStlScale;
+var user_height_raw = height * PrintScaleFactor * JMolStlScale;
+var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var user_length_mm = point(user_length_raw + 0.5);  // rounding up
+var user_height_mm = point(userheight_raw + 0.5);  // rounding up
+var user_depth_mm = point(user_depth_raw + 0.5);    // rounding up
+print "Printed at the curent scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
 
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
@@ -245,13 +271,9 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
         AtomsScaledPercent_corrected = AtomsScaledPercentMax;
     }
 }
-
-
-
 spacefill @AtomsScaledPercent_corrected%;
 
-
-
+print "-----debugg values for checking new formulas---------";
 print "-----debugg values for checking new formulas---------";
 print "PrintScaleFactor " + PrintScaleFactor;
 print "bonds_radius " + bonds_radius;
@@ -270,7 +292,6 @@ print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
 print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 
-var check = maxSpacefill * AtomScalingFactor
+var check = MinRendScaleFactorBallStick
 print "check " + check;
 write test.stl
-#minRadius) / MinBondLength;
