@@ -5,9 +5,9 @@
 //Load*8jiv //ribosome from EBI - extreamly large
 //Load=4ins //small protein
 //Load=2hhb //large protein
-//Load=4rna //tRNA, printing in balls and sticks was difficult
+Load=4rna //tRNA, printing in balls and sticks was difficult
 //Load=2bna //DNA, printing in balls and sticks was easy 
-load :nicotine //small molecule, printing in balls and sticks at 100% is recomended
+//load :nicotine //small molecule, printing in balls and sticks at 100% is recomended
 //Setting up and applying visualisation styles
 SET pdbAddHydrogens
 delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA];
@@ -134,7 +134,7 @@ var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
 // Setting up the print scale (PrintScaleFactor). Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100% if are small enough - will not scale the small molecules from PubChem to ridiculous sizes. Can switch between user selectable and MaxPrintScaleFactor ;
 
-var PrintScaleFactorUser = 0.38;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+var PrintScaleFactorUser = 0.4;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
 
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
@@ -192,22 +192,16 @@ spacefill @AtomsScaledPercent_corrected%;
 
 // Calculating theresholds for each visualisation style, deciding print scales and outputing real-world dimensions of the final print;
 
-//Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how max and min the objects are rendred in JMol related to the final printing scale. 
+//Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how min the objects are rendred in JMol related to the final printing scale. 
 
 // Ball and Stick Model
-var MaxRendScaleFactorBallStick = 1.36 / MinPrintedObjDimen / JMolStlScale; //final based on Math, needs validation by printing. 1.36 is the C diameter at max 40%vWr that still allows atoms to be separated.
-var MinRendScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
+var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
 
-// Sticks (Backbone Representation) — will continue here
-var MaxRendScaleFactorBackbone = 0.2; //temporary, needs math
-var MinRendScaleFactorBackbone = 1; //temporary, from the paper, needs math
-
-// Calculate MinPrintScale - the smallest scale at which the model can be printed which will be dependent on the rendering style. Math here is for the BallStick, will need to implement a function for each style of visualisation
-var MinPrintScaleFactorBallStick = MinRendScaleFactorBallStick
-//var MinPrintScaleFactorSurface etc = need to define for each rendering styles
+// Wireframe (Backbone Representation) — will continue here
+var MinThresholdScaleFactorBackbone = 1; //temporary, from the paper, needs math
 
 // Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
-var MinPrintScaleFactor = MinPrintScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation
+var MinPrintScaleFactor = MinThresholdScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation; It might that it is the smallest of the MaxPrintScale and each of the MinThresholdScaleFactor..... calculated for each style.
 
 print "----------------------------------------------";
 print "--- Start for 3D Printing RECOMMENDATIONS ----";
@@ -230,9 +224,9 @@ print "Rendering and printing recommendations are provided for a medium size (ie
 
 if (MaxPrintScaleFactor > 1) {
     print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
-} else if (MaxPrintScaleFactor > MaxRendScaleFactorBallStick) {
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
     print "Your molecule is rather small. All renderings are suitable and can be printed.";
-} else if (MaxPrintScaleFactor >= MaxRendScaleFactorBackbone) {
+} else if (MaxPrintScaleFactor >= MaxThresholdScaleFactorBackbone) {
     print "Your molecule is medium sized. Only printing it as a cartoon or surface is recommended.";
 } else {
     print "Your molecule is rather large. We are not ready for this yet.";
