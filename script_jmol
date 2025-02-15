@@ -3,10 +3,10 @@
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //Load*8jiv //ribosome from EBI - extreamly large
-//Load=4ins //small protein
+Load=4ins //small protein
 //Load=2hhb //large protein
 //Load=4rna //tRNA, printing in balls and sticks was difficult
-Load=2bna //DNA, printing in balls and sticks was easy 
+//Load=2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recomended
 
 //This part is an initial set-up of the molecule. 
@@ -56,12 +56,12 @@ function checkStruts() {  // for debugging ligand struts
   print "Reset with 'display all' ";
 }
 
-// MM - dont know thei purpose for the below for now, might be related to the website integration
-//function rSet() 
-//  // acts on current selection
-//  wireframe only;
-//  wireframe off;
-//}
+// MM - resets the wireframe style 
+function rSet() {
+  // acts on current selection
+  wireframe only;
+  wireframe off;
+}
 
 define ~prot protein and polymerLength>4; // MM - dont know thei purpose for now
 define ~dna dna and polymerLength>4; // MM - dont know thei purpose for now
@@ -190,11 +190,11 @@ var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
 // Setting up the print scale (PrintScaleFactor). Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100% if are small enough - will not scale the small molecules from PubChem to ridiculous sizes. Can switch between user selectable and MaxPrintScaleFactor ;
 
-var PrintScaleFactorUser = 0.4;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+var PrintScaleFactorUser = 0.2;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
 
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
-if (PrintScaleFactorUser == 0) {  // Correct comparison: '==' not '= ='
+if (PrintScaleFactorUser == 0) {  // 
     // When PrintScaleFactorUser is 0, apply the logic based on MaxPrintScaleFactor
     if (MaxPrintScaleFactor < 1) {
         PrintScaleFactor = MaxPrintScaleFactor;  // If MaxPrintScaleFactor is less than 1, use it
@@ -208,11 +208,10 @@ if (PrintScaleFactorUser == 0) {  // Correct comparison: '==' not '= ='
 
 // calculation of the print factors is now complete
 
-// Compute rendering factor for each visualization style
+// Compute rendering factors as limits for each visualization style
 //For Atoms and Sticks
 // Compute and apply bonds dimensions;
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
-wireframe @bonds_radius // dont know why, but moving it down does not wor for a reason
 
 // Compute scaling factor for atoms as %;
 var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
@@ -239,8 +238,6 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
         AtomsScaledPercent_corrected = AtomsScaledPercentMax;
     }
 }
-spacefill @AtomsScaledPercent_corrected%; // dont know why, but moving it down does not wor for a reason
-
 
 // end of rendering setup for balls and sticks
 
@@ -250,12 +247,38 @@ spacefill @AtomsScaledPercent_corrected%; // dont know why, but moving it down d
 
 // Ball and Stick Model
 var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
+// Wireframe (Backbone Representation)
+var MinThresholdScaleFactorBackbone = MinThresholdScaleFactorBallStick; //temporary, from the paper, needs math
+// Trace — will continue here
+var MinThresholdScaleFactorTrace = MinThresholdScaleFactorBallStick; //temporary, from the paper, needs math
+// Ribbon — will continue here
+var MinThresholdScaleFactorRibbon = MinThresholdScaleFactorBallStick; //temporary, from the paper, needs math
+// Spacefill — will continue here
+var MinThresholdScaleFactorSpacefill = MinThresholdScaleFactorBallStick; //temporary, from the paper, needs math
 
-// Wireframe (Backbone Representation) — will continue here
-var MinThresholdScaleFactorBackbone = 1; //temporary, from the paper, needs math
 
-// Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later.
-var MinPrintScaleFactor = MinThresholdScaleFactorBallStick; //temporary, will need to implement a function for each style of visualisation; It might that it is the smallest of the MaxPrintScale and each of the MinThresholdScaleFactor..... calculated for each style.
+// Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later. Lowest value among the set. Needs testing.
+var MinPrintScaleFactor = MinThresholdScaleFactorBallStick;
+
+if (MinThresholdScaleFactorBackbone < MinPrintScaleFactor) {
+    MinPrintScaleFactor = MinThresholdScaleFactorBackbone;
+}
+
+if (MinThresholdScaleFactorTrace < MinPrintScaleFactor) {
+    MinPrintScaleFactor = MinThresholdScaleFactorTrace;
+}
+
+if (MinThresholdScaleFactorRibbon < MinPrintScaleFactor) {
+    MinPrintScaleFactor = MinThresholdScaleFactorRibbon;
+}
+
+if (MinThresholdScaleFactorSpacefill < MinPrintScaleFactor) {
+    MinPrintScaleFactor = MinThresholdScaleFactorSpacefill;
+}
+
+if (MaxPrintScaleFactor < MinPrintScaleFactor) {
+    MinPrintScaleFactor = MaxPrintScaleFactor;
+}
 
 print "----------------------------------------------";
 print "--- Start for 3D Printing RECOMMENDATIONS ----";
@@ -322,28 +345,60 @@ print "Printed at the curent scale/user selected scale of " + PrintScale_round +
 print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
+// For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/). Ugly adapted to work with the dimensions calculated above.
+/* IMPLEMENTING DIMENSIONS:  ==============================================
+*/
+bR = bonds_radius; 
+aR = AtomsScaledPercent_corrected; /* atoms (including for ligands) */
+
+sR = (bonds_radius* 0.9); /* struts 2Ã… = 2 mm */
+ssR = 1.0; /* SSbonds  */
+bbR = 1.5; /* backbone */
+tR = 1.5; /* trace, ribbons, blocks (nucleic cartoons) */
+
+// End of the part from Dr. Angel Herráez and adapted by me
+
 
 /* RENDERING:  ==============================================
 */
 
-var opt = "ballandstick" // to be connected with the website // Possible values: ballandstick
+var opt = "backbone" // to be connected with the website // Possible values: ballandstick; backbone
+
+
 if (opt == "ballandstick");
     calculate hbonds // this needs to be decided
+    color hbonds indigo;
     calculate struts // this needs to be decided, related to Angels script. 
     color struts magenta
-    color hbonds indigo //AH script obove already does this but in '[xFDF5E6]';
-    wireframe @bonds_radius; 
-    hbonds @{bonds_radius * 0.9};
-    struts @{bonds_radius * 0.8};
+    wireframe @bR; 
+    hbonds @{bR * 0.9};
+    struts @{bR * 0.8};
+    spacefill @{aR}%;
 endif;
 
-var opt = "test"
-if (opt == "test")
-    print "check " + check;
+// For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/).
+
+if (opt=='backbone');
+    // Protein backbone
+    select ~prot;
+    #wireframe off
+    spacefill off
+    rSet();
+    calculate hbonds // this needs to be decided
+    set hbonds backbone
+    set hbonds solid
+    hbonds @{bR * 0.9};
+    color hbonds indigo;
+    calculate struts // this needs to be decided, related to Angels script. 
+    color struts magenta
+    isosurface delete;
+    backbone @{bR * 2};
+    set ssbonds backbone;
+    ssBonds @{bR * 0.9};
+    select all;
 endif;
 
-
-
+// de continuat de luat din scriptul lui angel si adaptat. 
 
 print "-----debugg values for checking new formulas---------";
 print "PrintScaleFactor " + PrintScaleFactor;
@@ -352,14 +407,10 @@ print "MinBondLength " +MinBondLength;
 print "ScaledMinBondLength " +ScaledMinBondLength;
 print "Largest Spacefill Value: " + maxSpacefill + " Å";
 print "Smalest Spacefill Value: " + minSpacefill + " Å";
-print "MaxAtomReqSize: " + MaxAtomReqSize + " Å";
-print "ActualMaxAtomReqSize: " + ActualMaxAtomReqSize + " Å";
 print "AtomsScaledPercentMax: " + AtomsScaledPercentMax + " %";
-print "MaxAtomReqSize2: " + MaxAtomReqSize2 + " Å";
-print "ActualMaxAtomReqSize2: " + ActualMaxAtomReqSize2 + " Å";
 print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
-print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
+print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
 
 var check = aSF
 print "check " + check;
