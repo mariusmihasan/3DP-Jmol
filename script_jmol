@@ -5,19 +5,75 @@
 //Load*8jiv //ribosome from EBI - extreamly large
 //Load=4ins //small protein
 //Load=2hhb //large protein
-Load=4rna //tRNA, printing in balls and sticks was difficult
-//Load=2bna //DNA, printing in balls and sticks was easy 
+//Load=4rna //tRNA, printing in balls and sticks was difficult
+Load=2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recomended
-//Setting up and applying visualisation styles
-SET pdbAddHydrogens
-delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA];
-calculate hbonds
-set hbonds solid
-color hbonds white
-calculate struts 
-color struts magenta
-#this is where the script from Angel cames into place to add or nor struts between the ligands and protein
 
+//This part is an initial set-up of the molecule. 
+
+// For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
+
+#set echo wk 50% 100%;
+#set echo wk center;
+#font echo 22;
+#color echo yellow;
+#background echo [xA040A0];
+#echo "         working...         ";
+#refresh;
+
+spin off; anim off;
+delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA]; //MM will keep hydrogens for now, needs a decision - maybe depending on style
+delete not (model=1.1);
+//configuration 1; delete not selected; select all; // MM - dont know thei purpose for now, related to selection
+center visible;
+//set cartoonFancy on; // MM - dont know thei purpose for now
+//set hermiteLevel 4; // MM - dont know thei purpose for now
+//set ribbonAspectRatio 2; // MM - dont know thei purpose for now
+set hbondsSolid true;
+
+/* COLORS:  ==============================================
+*/
+cSurf = 'yellowTint'; // isosurfaces
+
+select protein;
+color backbone dodgerBlue;
+color trace dodgerBlue;
+color ribbons dodgerBlue;
+color cartoon dodgerBlue;
+
+select nucleic;
+color backbone mediumOrchid;
+color trace mediumOrchid;
+color ribbons mediumOrchid;
+color cartoon mediumOrchid;
+
+select all;
+color ssBonds yellow;
+
+function checkStruts() {  // for debugging ligand struts
+  display not ~poly;
+  display add connected(displayed);
+  print "Reset with 'display all' ";
+}
+
+// MM - dont know thei purpose for the below for now, might be related to the website integration
+//function rSet() 
+//  // acts on current selection
+//  wireframe only;
+//  wireframe off;
+//}
+
+define ~prot protein and polymerLength>4; // MM - dont know thei purpose for now
+define ~dna dna and polymerLength>4; // MM - dont know thei purpose for now
+define ~rna rna and polymerLength>4; // MM - dont know thei purpose for now
+define ~nuc ~dna or ~rna; // MM - dont know thei purpose for now
+define ~poly ~prot or ~nuc; // MM - dont know thei purpose for now
+define ~node alpha or (*.P and nucleic); //nodes for backbone/trace // MM - dont know thei purpose for now
+define ~nodeN ~node and nucleic; // MM - dont know thei purpose for now
+
+// End of the part from Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
+
+SET pdbAddHydrogens // this needs to be decided
 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
 // First step is to get some info related to the target molecule: size, smallest and largest atom, smallest bond length;
@@ -152,15 +208,12 @@ if (PrintScaleFactorUser == 0) {  // Correct comparison: '==' not '= ='
 
 // calculation of the print factors is now complete
 
-// Computate and apply rendering factor for each visualization style
+// Compute rendering factor for each visualization style
 //For Atoms and Sticks
 // Compute and apply bonds dimensions;
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
-wireframe @bonds_radius; 
-var bond_radius_hbonds = bonds_radius*0.9
-var bond_radius_struts = bonds_radius*0.8
-hbonds @bond_radius_hbonds;
-struts @bond_radius_struts;
+wireframe @bonds_radius // dont know why, but moving it down does not wor for a reason
+
 // Compute scaling factor for atoms as %;
 var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
 var ActualAtomReqSize = minSpacefill
@@ -186,7 +239,8 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
         AtomsScaledPercent_corrected = AtomsScaledPercentMax;
     }
 }
-spacefill @AtomsScaledPercent_corrected%;
+spacefill @AtomsScaledPercent_corrected%; // dont know why, but moving it down does not wor for a reason
+
 
 // end of rendering setup for balls and sticks
 
@@ -269,6 +323,28 @@ print "--- End for 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
 
+/* RENDERING:  ==============================================
+*/
+
+var opt = "ballandstick" // to be connected with the website // Possible values: ballandstick
+if (opt == "ballandstick");
+    calculate hbonds // this needs to be decided
+    calculate struts // this needs to be decided, related to Angels script. 
+    color struts magenta
+    color hbonds indigo //AH script obove already does this but in '[xFDF5E6]';
+    wireframe @bonds_radius; 
+    hbonds @{bonds_radius * 0.9};
+    struts @{bonds_radius * 0.8};
+endif;
+
+var opt = "test"
+if (opt == "test")
+    print "check " + check;
+endif;
+
+
+
+
 print "-----debugg values for checking new formulas---------";
 print "PrintScaleFactor " + PrintScaleFactor;
 print "bonds_radius " + bonds_radius;
@@ -285,6 +361,7 @@ print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
 print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 
-var check = MinRendScaleFactorBallStick
+var check = aSF
 print "check " + check;
+
 write test.stl
