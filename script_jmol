@@ -1,9 +1,9 @@
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //Load*8jiv //ribosome from EBI - extremely large
-//Load=4ins //small protein
-//Load=2hhb //large protein
-Load=4rna //tRNA, printing in balls and sticks was difficult
+Load=4ins //small protein
+Load=2HHB //large protein
+//Load=4rna //tRNA, printing in balls and sticks was difficult
 //Load=2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recommended
 
@@ -189,7 +189,7 @@ var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
 // Setting up the print scale (PrintScaleFactor). Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100% if are small enough - will not scale the small molecules from PubChem to ridiculous sizes. Can switch between user selectable and MaxPrintScaleFactor ;
 
-var PrintScaleFactorUser = 0.3;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+var PrintScaleFactorUser = 0.2;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
 
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
@@ -247,6 +247,8 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
 // Ball and Stick Model
 var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
 // Wireframe (Backbone Representation)
+var MinThresholdScaleFactorTrace = 1 ///(bonds_radius) #/1.4 ///0.2; //Default trace radius in JMol in 0.3 A. If trace go up, it will be so thick that the helix pitch (4,75 A) and the helix inside (theoretical radius 2.3) will not be wissible anymore. I will test with inside of the helix, and put a limit to have at least 1 A empy space - reference radius will be 2.3 - (1/2) = 1.8 A
+// Trace — will continue here
 var MinThresholdScaleFactorBackbone = 0.2; //temporary, from the paper, needs math
 // Trace — will continue here
 var MinThresholdScaleFactorTrace = 0.2; //temporary, from the paper, needs math
@@ -352,8 +354,8 @@ aR = AtomsScaledPercent_corrected; /* atoms  including for ligands) */
 sR = (bonds_radius * 0.8); /* struts slighter thiner */ 
 ssR = (bonds_radius * 0.9); /* SSbonds slighter thiner */
 hR = (bonds_radius * 0.8); /* Hbonds  slighter thiner */
-bbR = (bR * 2); /* backbone thice thicker the a bond */
-tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) thice thicker the a bond */
+bbR = (bR * 1.5); /* backbone 1.5 x thicker the a bond */
+tR = (bR * 1.5); /* trace, ribbons, blocks (nucleic cartoons) thice thicker the a bond */
 
 // End of the part from Dr. Angel Herráez and adapted by me
 
@@ -361,8 +363,9 @@ tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) thice thicker the a 
 /* RENDERING:  ==============================================
 */
 
-var opt = "blocks" // to be connected with the website // Possible values: ballandstick; backbone; trace; ribbon; blocks; spacefill
-
+var opt = "backbone" // to be connected with the website // Possible implemented values so far: ballandstick; backbone; trace; ribbon; blocks; spacefill
+//Possible styles in Jmol for structure: Backbone, Cartoon, Cartoon Rockets, Ribbons, Rockets, Strands (not printable), Trace.
+//Possible styles in Jmol for Scheme: CPK Spacefill, Ball and Stick, Stiks, Wireframe, Cartoon, Trace. 
 
 if (opt == "ballandstick");
     calculate hbonds // this needs to be decided
@@ -488,7 +491,7 @@ endif;
   select (not ~poly);
   rSet();
   wireframe @bR;
-  spacefill @aR;
+  spacefill @{aR}%;;
 
 // Struts
   select all;
@@ -649,8 +652,8 @@ print "AtomsScaledPercentMax: " + AtomsScaledPercentMax + " %";
 print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
-
-var check = aSF
-print "check " + check;
+print "MinThresholdScaleFactorTrace: " + MinThresholdScaleFactorTrace+ " %";
+var check = MinThresholdScaleFactorTrace
+print "check " + check; 
 
 write test.stl
