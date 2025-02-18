@@ -1,14 +1,16 @@
 
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
-//Load*8jiv //ribosome from EBI - extremely large
-Load=4ins //small protein
-Load=2HHB //large protein
-//Load=4rna //tRNA, printing in balls and sticks was difficult
-//Load=2bna //DNA, printing in balls and sticks was easy 
+//load *8jiv //ribosome from EBI - extremely large
+load =1rbp //large ?? protein, b sheets example
+//load =2HHB.cif //medium protein
+//load =4ins //small protein
+//load =4rna //tRNA, printing in balls and sticks was difficult
+//load =2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recommended
 
-//This part is an initial set-up of the molecule. 
+// Issue observed - some pdb are loaded in more copies, other not complete. Have something to do with the biounit? How this can be solved?
+// This part is an initial set-up of the molecule. 
 
 // For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
 
@@ -26,8 +28,8 @@ delete not (model=1.1);
 configuration 1; delete not selected; select all; // MM - dont know thei purpose for now, related to selection
 center visible;
 set cartoonFancy on; // MM - dont know thei purpose for now
-set hermiteLevel 4; // MM - dont know thei purpose for now
-set ribbonAspectRatio 2; // MM - dont know thei purpose for now
+set hermiteLevel 4; //MM - Increasing it to 6 does not show improvemnt in the stl surfaces. Determines the amount of curve smoothing used in rendering protein and nucleic acid secondary structures involving cartoon, ribbbon, rocket, and trace. A value of 4 or -4 might be a reasonable compromise between look and performance. 
+set ribbonAspectRatio 2; // MM - Sets the thickness of the ribbons in ribbon and cartoon renderings in terms of the width:height aspect ratio; Default looks like 30/7.5 = 4. Should not be required, the scalling ensures that thikness is always ok.
 set hbondsSolid true;
 
 /* COLORS:  ==============================================
@@ -190,7 +192,7 @@ var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
 // Setting up the print scale (PrintScaleFactor). Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100% if are small enough - will not scale the small molecules from PubChem to ridiculous sizes. Can switch between user selectable and MaxPrintScaleFactor ;
 
-var PrintScaleFactorUser = 0.3;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+var PrintScaleFactorUser = 0.16;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
 
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
@@ -245,16 +247,20 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
 
 //Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how min the objects are rendred in JMol related to the final printing scale. 
 
-// Ball and Stick Model // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
-var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); 
-// Backbone models //Default backbone radius in JMol in 0.3 A. If backbone go up, it will be so thick that the helix pitch (4,75 A) and the helix inside (theoretical radius 2.3) will not be wissible anymore. I will test with inside of the helix, and put a limit to have at least 1 A empy space - reference radius will be 2.3 - (1/2) = 1.8 A. 
-var MinThresholdScaleFactorBackbone = MinPrintedObjDimen/1.8; 
-//Trace model //Default trace radius in JMol in 0.3 A. Same as logic as for backbone, but  reference radius needs to go lower to have more space inside the helix hence 2.3 - (0.8) = 1.5 A
-var MinThresholdScaleFactorTrace = MinPrintedObjDimen/1.5; 
-// Ribbon — will continue here
-var MinThresholdScaleFactorRibbon = 0.2; //temporary, from the paper, needs math
+
+var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // Ball and Stick Model // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
+
+var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2); // Backbone models //Default backbone radius in JMol in 0.3 A. If backbone go up, it will be so thick that the helix pitch (4,75 A) and the helix inside (theoretical radius 2.3) will not be visible anymore. I will test with inside of the helix, and put a limit to have at least 1.8 A empty space - maximum radius for the backbone will be 2.3 - (1.8/2) = 1.4 A. Backbone is bbR(1.5 * bond radius). Hence bond radius max is 1.4/1.5. But bond radius is (MinPrintedObjDimen/PrintScaleFactor) / 2, so we calculate PrintScaleFactor as the formula in var.
+
+
+var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; //Trace model //Same as logic as for backbone, but  empty space needs to go higher to have more space inside the helix for easier support removal - 2 A. Trace radius max (tR = (bR * 2) is hence 2.3 - (2/2) = 1.3. Bond radius is then 1.4 / 2. But bond radius is (MinPrintedObjDimen/PrintScaleFactor) / 2, so we calculate PrintScaleFactor as the formula in var.
+
+var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); // If  ribbon goes up, it will be so thick that the helix pitch and the helix inside will not be visible anymore. Theretical helix diameter is 4.5, helix pitch is 5.4. We will keep at least 1.5 A empty space. This means that the ribbon width (bond radius * 2) can not be higher then (5.4-1.5)/2 = 1.95 for width contraint, hence bond radius max is 0.85, and the ribbon thicknes (bond radius) can not be higher then (4,5-1.5)/2=1,5 for thicknes constraint. Bond radius is (MinPrintedObjDimen/PrintScaleFactor) / 2, and we calculate PrintScaleFactor which is the limit. 
+
+// Cartoon — will continue here
+var MinThresholdScaleFactorCartoon = MinPrintedObjDimen/2; // Same as logic as for backbone, but does not work - coils are rendered ok by (tR = (bR * 2)), helices and sheets are not. Dont know how to connect the helices and sheets with the coils dimensions (tR = (bR * 2). This needs work, arrows dimensions are not tacken into account
 // Spacefill — will continue here
-var MinThresholdScaleFactorSpacefill = 0.2; //temporary, from the paper, needs math
+var MinThresholdScaleFactorSpacefill = 0.1; //temporary, from the paper, needs math
 
 
 // Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later. Lowest value among the set. Needs testing.
@@ -354,7 +360,7 @@ sR = (bonds_radius * 0.8); /* struts slighter thiner */
 ssR = (bonds_radius * 0.9); /* SSbonds slighter thiner */
 hR = (bonds_radius * 0.8); /* Hbonds  slighter thiner */
 bbR = (bR * 1.5); /* backbone thicker the a bond */
-tR = (bR * 1.5); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bond */
+tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bond */ // this is the width of the element. Thicknes is half, meaning bR
 
 // End of the part from Dr. Angel Herráez and adapted by me
 
@@ -362,7 +368,7 @@ tR = (bR * 1.5); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a 
 /* RENDERING:  ==============================================
 */
 
-var opt = "trace" // to be connected with the website // Possible implemented values so far: ballandstick; backbone; trace; ribbon; blocks; spacefill
+var opt = "spacefill" // to be connected with the website // Possible implemented values so far: ballandstick; backbone; trace; cartoon; ribbon; blocks; spacefill
 //Possible styles in Jmol for structure: Backbone, Cartoon, Cartoon Rockets, Ribbons, Rockets, Strands (not printable), Trace.
 //Possible styles in Jmol for Scheme: CPK Spacefill, Ball and Stick, Stiks, Wireframe, Cartoon, Trace. 
 
@@ -400,6 +406,19 @@ if (opt=='trace');
     set ssbonds backbone;
     ssBonds @ssR;
     select all;
+endif;
+
+//cartoon needs working. Arrows tip is much to thin to ensure succesfull print and dont know how to change it. Also, secundary structures are rendered thinner than the coil. 
+if (opt=='cartoon');
+// Protein ribbon
+  select ~prot;
+  rSet();
+  hbonds off;
+  isosurface delete;
+  cartoon @{-tR};
+  set ssbonds backbone;
+  ssBonds @ssR;
+  select all;
 endif;
 
 if (opt=='ribbon');
@@ -651,8 +670,13 @@ print "AtomsScaledPercentMax: " + AtomsScaledPercentMax + " %";
 print "AtomsScaledPercentMax2: " + AtomsScaledPercentMax2 + " %";
 print "AtomsScaledPercent: " + AtomsScaledPercent+ " %";
 print "AtomsScaledPercent_corrected: " + AtomsScaledPercent_corrected+ " %";
+print "MinThresholdScaleFactorBallStick: " + MinThresholdScaleFactorBallStick+ " %";
 print "MinThresholdScaleFactorBackbone: " + MinThresholdScaleFactorBackbone+ " %";
-var check = MinThresholdScaleFactorTrace
+print "MinThresholdScaleFactorTrace: " + MinThresholdScaleFactorTrace+ " %";
+print "MinThresholdScaleFactorRibbon: " + MinThresholdScaleFactorRibbon+ " %";
+print "MinThresholdScaleFactorCartoon: " + MinThresholdScaleFactorCartoon+ " %";
+print "MinThresholdScaleFactorSpacefill: " + MinThresholdScaleFactorSpacefill+ " %";
+var check = MinThresholdScaleFactorRibbon
 print "check " + check; 
 
 write test.stl
