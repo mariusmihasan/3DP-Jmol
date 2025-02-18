@@ -2,8 +2,8 @@
 // This is the initial loading and preparation of the molecule.
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //load *8jiv //ribosome from EBI - extremely large
-load =1rbp //large ?? protein, b sheets example
-//load =2HHB.cif //medium protein
+//load =1rbp //large ?? protein, b sheets example
+load =2HHB.cif //medium protein
 //load =4ins //small protein
 //load =4rna //tRNA, printing in balls and sticks was difficult
 //load =2bna //DNA, printing in balls and sticks was easy 
@@ -192,7 +192,7 @@ var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 
 // Setting up the print scale (PrintScaleFactor). Making sure that is always no less the 1 will ensure that small molecules will alway be printed at max. 100% if are small enough - will not scale the small molecules from PubChem to ridiculous sizes. Can switch between user selectable and MaxPrintScaleFactor ;
 
-var PrintScaleFactorUser = 0.16;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
+var PrintScaleFactorUser = 0.3;  // User input for PrintScaleFactor (can be 0 or any non-zero value)
 
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
@@ -257,14 +257,16 @@ var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; //Trace model //Sa
 
 var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); // If  ribbon goes up, it will be so thick that the helix pitch and the helix inside will not be visible anymore. Theretical helix diameter is 4.5, helix pitch is 5.4. We will keep at least 1.5 A empty space. This means that the ribbon width (bond radius * 2) can not be higher then (5.4-1.5)/2 = 1.95 for width contraint, hence bond radius max is 0.85, and the ribbon thicknes (bond radius) can not be higher then (4,5-1.5)/2=1,5 for thicknes constraint. Bond radius is (MinPrintedObjDimen/PrintScaleFactor) / 2, and we calculate PrintScaleFactor which is the limit. 
 
-// Cartoon — will continue here
 var MinThresholdScaleFactorCartoon = MinPrintedObjDimen/2; // Same as logic as for backbone, but does not work - coils are rendered ok by (tR = (bR * 2)), helices and sheets are not. Dont know how to connect the helices and sheets with the coils dimensions (tR = (bR * 2). This needs work, arrows dimensions are not tacken into account
+
 // Spacefill — will continue here
-var MinThresholdScaleFactorSpacefill = 0.1; //temporary, from the paper, needs math
+var MinThresholdScaleFactorSpacefill = 0.025; //temporary, from the paper, needs math
+// Spacefill — will continue here
+var MinThresholdScaleFactorSurface = 0.025; //temporary, from the paper, needs math
 
 
 // Calculate MinPrintScaleFactor - planned to be used for scaling dimensions later. Lowest value among the set. Needs testing.
-var MinPrintScaleFactor = MinThresholdScaleFactorBallStick;
+var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 
 if (MinThresholdScaleFactorBackbone < MinPrintScaleFactor) {
     MinPrintScaleFactor = MinThresholdScaleFactorBackbone;
@@ -368,7 +370,7 @@ tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bo
 /* RENDERING:  ==============================================
 */
 
-var opt = "spacefill" // to be connected with the website // Possible implemented values so far: ballandstick; backbone; trace; cartoon; ribbon; blocks; spacefill
+var opt = "sesurface" // to be connected with the website // Possible implemented values so far: ballandstick; backbone; trace; cartoon; ribbon; blocks; spacefill, surface
 //Possible styles in Jmol for structure: Backbone, Cartoon, Cartoon Rockets, Ribbons, Rockets, Strands (not printable), Trace.
 //Possible styles in Jmol for Scheme: CPK Spacefill, Ball and Stick, Stiks, Wireframe, Cartoon, Trace. 
 
@@ -408,7 +410,7 @@ if (opt=='trace');
     select all;
 endif;
 
-//cartoon needs working. Arrows tip is much to thin to ensure succesfull print and dont know how to change it. Also, secundary structures are rendered thinner than the coil. 
+//cartoon needs work. Arrows tip is much to thin to ensure succesfull print and dont know how to change it. Also, secundary structures are rendered thinner than the coil. 
 if (opt=='cartoon');
 // Protein ribbon
   select ~prot;
@@ -634,7 +636,10 @@ struts @sR;
 color struts translucent 0.4 navajoWhite;
 /* affects both default (protein) struts and those created with "connect" */
 
-// Molecular surfaces
+// as they are rendered, only sessurface (molecular) might allow removal of the ligand. Solvent accesible surface does not. Need to find out more about the radius used to generate these surfaces. Aparently, the script uses solvent-accessible surface with radius 1.2 and molecular surface with radius 1.4.
+// surface is verry porly rendered, with many squares where it shoul be round.
+
+// Molecular surfaces 
 if (opt.find('surface'));
 echo "  computing surface...  ";
 refresh;
