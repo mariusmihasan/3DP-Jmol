@@ -1,5 +1,5 @@
-// 3DP-Jmol - a Jmol based script for automatic generation 3D printable molecular models based on pdb data.
-//Contribuitors: 
+// 3DP-Jmol - a Jmol-based script for the automatic generation of 3D printable molecular models from structural data.
+//Contributors: 
 // Dr. Marius Mihasan, Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
 // Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
