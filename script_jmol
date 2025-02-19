@@ -268,22 +268,40 @@ var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 
 print "----------------------------------------------";
 print "--- Start of 3D Printing RECOMMENDATIONS ----";
-
+print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer. Using SLA printers is possible, but not yet tested.";
 //Calculate min and max printing scale in % to be displayed
 var MaxPrintScale = MaxPrintScaleFactor*100;
 var MinPrintScale = MinPrintScaleFactor*100;
 var PrintScale = PrintScaleFactor*100;
-
 // rounding up scale values for display
 var MaxPrintScale_round = point(MaxPrintScale + 0.5);    // rounding up
 var MinPrintScale_round = point(MinPrintScale + 0.5);    // rounding up
 var PrintScale_round = point(PrintScale + 0.5);    // rounding up
 
+// Output approximate real-world print dimensions in mm at MaxPrintScale 
+// Compute raw values first
+var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var max_length_mm = point(max_length_raw + 0.5);  // rounding up
+var max_height_mm = point(max_height_raw + 0.5);  // rounding up
+var max_depth_mm = point(max_depth_raw + 0.5);    // rounding up
+print "-->Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+
+// Output approximate real-world print dimensions in mm at MinPrintScale 
+// Compute raw values first
+var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var min_length_mm = point(min_length_raw + 0.5);  // rounding up
+var min_height_mm = point(min_height_raw + 0.5);  // rounding up
+var min_depth_mm = point(min_depth_raw + 0.5);    // rounding up
+print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
 // text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
 
-print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer. Using SLA printers is possible, but not yet tested.";
-
-// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section. The 0.3 value is arbitrary and requires adjustment.
+// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section.
 
 if (MaxPrintScaleFactor > 1) {
     print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
@@ -300,28 +318,14 @@ if (MaxPrintScaleFactor > 1) {
 } else {
     print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
 }
-
-// Output approximate real-world print dimensions in mm at MaxPrintScale 
-// Compute raw values first
-var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
-var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
-var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
-// Round values to the nearest integer
-var max_length_mm = point(max_length_raw + 0.5);  // rounding up
-var max_height_mm = point(max_height_raw + 0.5);  // rounding up
-var max_depth_mm = point(max_depth_raw + 0.5);    // rounding up
-print "Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
-
-// Output approximate real-world print dimensions in mm at MinPrintScale 
-// Compute raw values first
-var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
-var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
-var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
-// Round values to the nearest integer
-var min_length_mm = point(min_length_raw + 0.5);  // rounding up
-var min_height_mm = point(min_height_raw + 0.5);  // rounding up
-var min_depth_mm = point(min_depth_raw + 0.5);    // rounding up
-print "Printed at a minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm. Printing at smaller scales might still pe possible, but atomic details (H atoms) will be lost.";
+print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
+print "- the minimum allowed scale for the Ball and stick style is 35%;";
+print "-- the minimum allowed scale for the Trace style is 23%;";
+print "--- the minimum allowed scale for the Ribbon style is 17%;";
+print "---- the minimum allowed scale for the Backbone style is 16%;";
+print "----- The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
+print "--- End of 3D Printing RECOMMENDATIONS ----";
+print "--------------------------------------------";
 
 // Output approximate real-world print dimensions in mm at curent scale/user 
 // Compute raw values first
@@ -333,8 +337,6 @@ var user_length_mm = point(user_length_raw + 0.5);  // rounding up
 var user_height_mm = point(user_height_raw + 0.5);  // rounding up
 var user_depth_mm = point(user_depth_raw + 0.5);    // rounding up
 print "Printed at the curent scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
-
-print "--- End of 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
 // For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/). Ugly adapted to work with the dimensions calculated above.
