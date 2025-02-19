@@ -1,5 +1,7 @@
-
-// This is the initial loading and preparation of the molecule.
+// 3DP-Jmol - a Jmol based script for automatic generation 3D printable molecular models based on pdb data.
+//Contribuitors: 
+// Dr. Marius Mihasan, Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
+// Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
 // Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
 //load *8jiv //ribosome from EBI - extremely large
 //load =1rbp //large ?? protein, b sheets example
@@ -265,7 +267,7 @@ var MinThresholdScaleFactorSurface = 0.025; //temporary, from the paper, needs m
 var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 
 print "----------------------------------------------";
-print "--- Start for 3D Printing RECOMMENDATIONS ----";
+print "--- Start of 3D Printing RECOMMENDATIONS ----";
 
 //Calculate min and max printing scale in % to be displayed
 var MaxPrintScale = MaxPrintScaleFactor*100;
@@ -332,7 +334,7 @@ var user_height_mm = point(user_height_raw + 0.5);  // rounding up
 var user_depth_mm = point(user_depth_raw + 0.5);    // rounding up
 print "Printed at the curent scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
 
-print "--- End for 3D Printing RECOMMENDATIONS ----";
+print "--- End of 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
 
 // For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/). Ugly adapted to work with the dimensions calculated above.
@@ -591,24 +593,24 @@ function NucleicProteinStruts() {
   define ~nodeN ~node and nucleic;
   var P = {(~node and protein and within(6.0,~nodeN))};
   for (var j=1; j<={~nodeN}.size; j++) {
-  	for (var k=1; k<=P.size; k++) {
-  		D.push( [{~nodeN}[j].distance(P[k]), {~nodeN}[j].atomIndex, P[k].atomIndex] );
-  	}
+    for (var k=1; k<=P.size; k++) {
+        D.push( [{~nodeN}[j].distance(P[k]), {~nodeN}[j].atomIndex, P[k].atomIndex] );
+    }
   }
   D.sort(1); // lowest distances first
   
   var strutN = []; 
   var strutP = [];
   for (var j=1; j<D.size; j++) {
-  	var ~nucA = D[j].[2]; //atomIndex numbers
-  	var ~protA = D[j].[3];
-  	if ( !strutN.find(~nucA) && !strutP.find(~protA) ) { 
-  		strutN.push(~nucA); strutP.push(~protA);
-  	}
-  	if (strutN.length==nNucProtStruts) { break; }
+    var ~nucA = D[j].[2]; //atomIndex numbers
+    var ~protA = D[j].[3];
+    if ( !strutN.find(~nucA) && !strutP.find(~protA) ) { 
+        strutN.push(~nucA); strutP.push(~protA);
+    }
+    if (strutN.length==nNucProtStruts) { break; }
   }
   for (var j=1; j<=nNucProtStruts; j++) { /* add struts from nucleic to protein */ 
-  	connect ({atomIndex=@{strutN[j]}}) ({atomIndex=@{strutP[j]}}) strut;
+    connect ({atomIndex=@{strutN[j]}}) ({atomIndex=@{strutP[j]}}) strut;
   }
 } //end function
 
