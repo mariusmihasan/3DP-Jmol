@@ -612,6 +612,11 @@ function NucleicProteinStruts() {
   }
 } //end function
 
+
+var LigStruts = true // MM - function to specify if struts should conect ligands with protein. Possible values: true or false. Will be selectable in the web interface, as it is in AH version
+var NucProtStruts = 1 // MM - function to specify if struts should conect nucleic acids with protein. Possible values: 0 or 1. Will be selectable in the web interface, as it is in AH version
+
+
 if (LigStruts) { ligandProteinStruts(); }
 if (NucProtStruts==1) { NucleicProteinStruts(); }
 
