@@ -10,13 +10,19 @@ var opt = "backbone"
 var LigStruts = true 
 // Aici se seteaza daca moleculele non-proteice (substrate, cofactori, etc) sunt conectate fizic de molecula proteica. Conectarea lor inseamna ca nu mai pot fi scosi din molecula. Valori posibile: true sau false. In stilurile ballandstick; backbone; trace; ribbon;  trebuie e recomandat sa fie true, in stilul surface e recomandat sa fie false. 
 
-var NucProtStruts = 1 // MM - function to specify if struts should conect nucleic acids with protein. Possible values: 0 or 1. Will be selectable in the web interface, as it is in AH version
+var NucProtStruts = 1
+// Aici se stabileste daca acizii nucleici sunt conectati cu moleculele proteice.  Valori posibile: 0 sau 1. 
 
 var PrintScaleFactorUser = 0;
 // aici se stabileste scala de tiparire a modelului generat. La prima rulare a scriptului se pastreaza 0 si se genereaza un model la dimensiunea maxima. Dupa prima rulare,  apoi functie de feed-back-ul legat de scala sugerata poate fi modificat pentru a genera un model de dimensiunile dorite. Valoare de aici este scala impartita la 100. De exemplu, daca scala dorita este 30%, valoarea este 0.3
 
 ///Aici se termina campurile editabile cu valorile sugerate. Nu editati nimic dupa aceasta linie.
 //=================================================================================================================
+
+// 3DP-Jmol - a Jmol based script for automatically generating 3D printable molecular models based on pdb data.
+//Contributors: 
+// Dr. Marius Mihasan, Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
+// Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
 
 set echo wk 50% 100%;
 set echo wk center;
