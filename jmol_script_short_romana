@@ -219,6 +219,7 @@ tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bo
 */
 
 if (opt == "ballandstick");
+    rSet();
     calculate hbonds // this needs to be decided
     color hbonds @cHb;
     calculate struts // this needs to be decided, related to Angels script. 
