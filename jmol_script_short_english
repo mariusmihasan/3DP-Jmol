@@ -1,8 +1,8 @@
 
-
+t = now(); // timer start
 ///This is where user input is required
 
-var hydrogenAtoms = 'off'  # or 'off'
+var hydrogenAtoms = 'off'  # 'on'  or 'off'
 
 if (hydrogenAtoms=='on'); // no edits required
   SET pdbAddHydrogens; // no edits required
@@ -130,30 +130,14 @@ if (depth > maxDim) {
 }
 boundbox off;
 
-var bondLengths = getProperty("bondInfo", "length_Ang")
-var MinBondLength = 10 
-for (var i = 1; i <= bondLengths.length; i = i + 1) {
-    if (bondLengths[i] < MinBondLength) {
-        MinBondLength = bondLengths[i]
-    }
-}
-// Retrieve the atom spacefill values from the atomInfo
-var atomData = getProperty("atomInfo");
+// Identify the length of shortest bond
+var MinBondLength = {*}.bonds.length.min
+print "MinBondLength: " + MinBondLength
+// Identify spacefill values for the smallest and largest atom
+var minSpacefill = {*}.spacefill.min
+var maxSpacefill = {*}.spacefill.max
+print "min: " + minSpacefill + " max: " + maxSpacefill
 
-// Initialize the smallest and largest spacefill values with extreme initial values
-var minSpacefill = 10;  // Arbitrary large initial value
-var maxSpacefill = 0;   // Arbitrary small initial value
-
-// Loop through the atoms and find the minimum and maximum spacefill values
-for (var i = 1; i < atomData.length; i++) {
-    var spacefillValue = atomData[i].spacefill;
-    if (spacefillValue < minSpacefill) {
-        minSpacefill = spacefillValue;
-    }
-    if (spacefillValue > maxSpacefill) {
-        maxSpacefill = spacefillValue;
-    }
-}
 
 print "-- Setting up 3D printing environment ";
 var JMolStlScale = 10.0; 
@@ -564,4 +548,5 @@ endif;
 if (colorPrinter=='no');
   write test.stl;
 endif;
-
+print "Time for running the script: " + now(t) + "ms";
+print now(t); //prints the time required to run the script.
