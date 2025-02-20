@@ -1,6 +1,15 @@
 
 ///Aici incep campurile editabile cu valorile sugerate
 
+var hydrogenAtoms = 'on'  # or 'off'
+// aici se seteaza daca se doeste vizualizarea atomilor de H sau nu. Daca atomii de H au importanta in model si sunt necesari, atunci e pune on - dimeniunea minima la care molecula poate fi tiparita va creste. Daca H nu e necesar, e recomandat off pentru a putea tipari la dimensiuni mai mici.
+if (hydrogenAtoms=='on'); // nu edita
+  SET pdbAddHydrogens; // nu edita
+endif; // nu edita
+if (hydrogenAtoms=='off'); // nu edita
+  SET pdbAddHydrogens FALSE; // nu edita
+endif; // nu edita
+
 load =2HHB
 // aici se completeaza codul pdb de pe https://www.rcsb.org/  pentru molecula/proteina de interes. Exemple de coduri: 2bna; 4rna; 4ins; 1rbp; Se pot furniza si coduri de pe PubChem in formatul load :nicotine  sau de pe https://www.ebi.ac.uk/pdbe/ in formatul load *8jiv
 
@@ -188,6 +197,8 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
 }
 
 var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent);
+var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/(AtomsScaledPercent_corrected * (minSpacefill/(AtomScalingFactor*100))); 
+var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5);
 var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2);
 var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; 
 var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); 
@@ -534,7 +545,7 @@ if (MaxPrintScaleFactor > 1) {
     print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
-print "- the minimum allowed scale for the Ball and stick style is 35%;";
+print "- the minimum allowed scale for the Ball and stick style is " + minThresholdScaleFactorBallStick_display + " %;";
 print "-- the minimum allowed scale for the Trace style is 23%;";
 print "--- the minimum allowed scale for the Ribbon style is 17%;";
 print "---- the minimum allowed scale for the Backbone style is 16%;";
