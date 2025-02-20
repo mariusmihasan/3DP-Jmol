@@ -369,6 +369,7 @@ var opt = "trace" // to be connected with the website // Possible implemented va
 //Possible styles in Jmol for Scheme: CPK Spacefill, Ball and Stick, Stiks, Wireframe, Cartoon, Trace. 
 
 if (opt == "ballandstick");
+    rSet();
     calculate hbonds // this needs to be decided
     color hbonds @cHb;
     calculate struts // this needs to be decided, related to Angels script. 
