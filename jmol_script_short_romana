@@ -1,7 +1,7 @@
 
 ///Aici incep campurile editabile cu valorile sugerate
 
-var hydrogenAtoms = 'on'  # or 'off'
+var hydrogenAtoms = 'off'  # or 'off'
 // aici se seteaza daca se doeste vizualizarea atomilor de H sau nu. Daca atomii de H au importanta in model si sunt necesari, atunci e pune on - dimeniunea minima la care molecula poate fi tiparita va creste. Daca H nu e necesar, e recomandat off pentru a putea tipari la dimensiuni mai mici.
 if (hydrogenAtoms=='on'); // nu edita
   SET pdbAddHydrogens; // nu edita
@@ -22,7 +22,7 @@ var LigStruts = true
 var NucProtStruts = 1
 // Aici se stabileste daca acizii nucleici sunt conectati cu moleculele proteice.  Valori posibile: 0 sau 1. 
 
-var PrintScaleFactorUser = 0;
+var PrintScaleFactorUser = 0.16;
 // aici se stabileste scala de tiparire a modelului generat. La prima rulare a scriptului se pastreaza 0 si se genereaza un model la dimensiunea maxima. Dupa prima rulare,  apoi functie de feed-back-ul legat de scala sugerata poate fi modificat pentru a genera un model de dimensiunile dorite. Valoare de aici este scala impartita la 100. De exemplu, daca scala dorita este 30%, valoarea este 0.3
 
 ///Aici se termina campurile editabile cu valorile sugerate. Nu editati nimic dupa aceasta linie.
@@ -196,7 +196,6 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
     }
 }
 
-var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent);
 var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/(AtomsScaledPercent_corrected * (minSpacefill/(AtomScalingFactor*100))); 
 var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5);
 var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2);
