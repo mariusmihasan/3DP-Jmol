@@ -683,6 +683,3 @@ var check = MinThresholdScaleFactorRibbon
 print "check " + MaxPrintScaleFactor; 
 
 write test.stl
-
-reset ALL
-reset VDW
