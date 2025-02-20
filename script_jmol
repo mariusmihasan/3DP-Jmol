@@ -2,20 +2,32 @@
 //Contributors: 
 // Dr. Marius Mihasan, Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
 // Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
-// Loading will be handled by the website (method to be determined). A decision is needed regarding hydrogen atoms.
+
+//Initial JMol set-up. 
+set cartoonFancy on; // MM - dont know thei purpose for now
+set hermiteLevel 4; //MM - Increasing it to 6 does not show improvemnt in the stl surfaces. Determines the amount of curve smoothing used in rendering protein and nucleic acid secondary structures involving cartoon, ribbbon, rocket, and trace. A value of 4 or -4 might be a reasonable compromise between look and performance. 
+set ribbonAspectRatio 2; // MM - Sets the thickness of the ribbons in ribbon and cartoon renderings in terms of the width:height aspect ratio; Default looks like 30/7.5 = 4. Should not be required, the scalling ensures that thikness is always ok.
+set hbondsSolid true;
+var hydrogenAtoms = 'on'  # or 'off' // A decision is needed here. H atoms or the smallest atoms influence the printing scale for Ball and Stick as are referenced in the formula. Function that would allow user selection implemented.
+if (hydrogenAtoms=='on');
+  SET pdbAddHydrogens;
+endif;
+if (hydrogenAtoms=='off');
+  SET pdbAddHydrogens FALSE;
+endif;
+
+// Loading and inital preparation of the target molecule structure. Loading will be handled by the website (method to be determined). 
 //load *8jiv //ribosome from EBI - extremely large
 //load =1rbp //large ?? protein, b sheets example
-load =2HHB //medium protein
+//load =7RT0 //medium protein
 //load =4ins //small protein
 //load =4rna //tRNA, printing in balls and sticks was difficult
-//load =2bna //DNA, printing in balls and sticks was easy 
+load =2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recommended
 
 // Issue observed - some pdb are loaded in more copies, other not complete. Have something to do with the biounit? How this can be solved?
 // This part is an initial set-up of the molecule. 
-
-// For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
-
+// From Dr. Angel Herráez
 set echo wk 50% 100%;
 set echo wk center;
 font echo 22;
@@ -25,14 +37,10 @@ echo "         working...         ";
 refresh;
 
 spin off; anim off;
-delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA]; //MM will keep hydrogens for now, needs a decision - maybe depending on style
+delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA]; //MM will keep hydrogens for now, needs a decision - maybe depending on style and user input
 delete not (model=1.1);
 configuration 1; delete not selected; select all; // MM - dont know thei purpose for now, related to selection
 center visible;
-set cartoonFancy on; // MM - dont know thei purpose for now
-set hermiteLevel 4; //MM - Increasing it to 6 does not show improvemnt in the stl surfaces. Determines the amount of curve smoothing used in rendering protein and nucleic acid secondary structures involving cartoon, ribbbon, rocket, and trace. A value of 4 or -4 might be a reasonable compromise between look and performance. 
-set ribbonAspectRatio 2; // MM - Sets the thickness of the ribbons in ribbon and cartoon renderings in terms of the width:height aspect ratio; Default looks like 30/7.5 = 4. Should not be required, the scalling ensures that thikness is always ok.
-set hbondsSolid true;
 
 /* COLORS:  ==============================================
 */
@@ -76,8 +84,6 @@ define ~node alpha or (*.P and nucleic); //nodes for backbone/trace // MM - dont
 define ~nodeN ~node and nucleic; // MM - dont know thei purpose for now
 
 // End of the part from Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
-
-SET pdbAddHydrogens // this needs to be decided
 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
 // First step is to get some info related to the target molecule: size, smallest and largest atom, smallest bond length;
@@ -181,7 +187,7 @@ var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen //ratio between an C atom di
 // Calculate the AtomToBondLengthRatio value based on the diameter of the smallest atom and the length of the shortest length;
 var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
 
-// Define scaling factor for atom space fill as I do not know radii. 0.23 is default scalling for a C atom in Jmol, 0.2 is default scalling for a H atom in Jmol
+// Define scaling factor for atom space fill as I do not know radii. 0.23 is default scalling for a C atom in Jmol, Apparently, 0.2 is default scalling for a H atom in Jmol???
 var AtomScalingFactor = 0.20; // Adjust this if needed based on printing results
 
 var PrintBedMinDimension = 210.0 / JMolStlScale; // Introduce the PrintBedMinDimension variable. This is the minimum dimension (X, Y, or Z) of the print bed in mm and divided by the JMolStlScale as we work in A. For now, it is set manually in the script here, but it might be advisable/required to have a way of setting it from the browser. 
@@ -250,7 +256,9 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
 //Thresholds for rendering scale in Jmol for each rendering scheme. This sets up how min the objects are rendred in JMol related to the final printing scale. 
 
 
-var MinThresholdScaleFactorBallStick = (bonds_radius * 2)/((minSpacefill * AtomScalingFactor) * AtomsScaledPercent); // Ball and Stick Model // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
+var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/(AtomsScaledPercent_corrected * (minSpacefill/(AtomScalingFactor*100))); // Ball and Stick Model // scale at which the diameter of the smallest atom is equal with the bond with (MinPrintedObjDimen). Usually the smallest atom is H. Could go lower as for example for a bigger atom C 
+var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5); // for display as feedback for user
+
 
 var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2); // Backbone models //Default backbone radius in JMol in 0.3 A. If backbone go up, it will be so thick that the helix pitch (4,75 A) and the helix inside (theoretical radius 2.3) will not be visible anymore. I will test with inside of the helix, and put a limit to have at least 1.8 A empty space - maximum radius for the backbone will be 2.3 - (1.8/2) = 1.4 A. Backbone is bbR(1.5 * bond radius). Hence bond radius max is 1.4/1.5. But bond radius is (MinPrintedObjDimen/PrintScaleFactor) / 2, so we calculate PrintScaleFactor as the formula in var.
 
@@ -319,7 +327,7 @@ if (MaxPrintScaleFactor > 1) {
     print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
-print "- the minimum allowed scale for the Ball and stick style is 35%;";
+print "- the minimum allowed scale for the Ball and stick style is " + minThresholdScaleFactorBallStick_display + " %;";
 print "-- the minimum allowed scale for the Trace style is 23%;";
 print "--- the minimum allowed scale for the Ribbon style is 17%;";
 print "---- the minimum allowed scale for the Backbone style is 16%;";
@@ -672,6 +680,9 @@ print "MinThresholdScaleFactorRibbon: " + MinThresholdScaleFactorRibbon+ " %";
 print "MinThresholdScaleFactorCartoon: " + MinThresholdScaleFactorCartoon+ " %";
 print "MinThresholdScaleFactorSpacefill: " + MinThresholdScaleFactorSpacefill+ " %";
 var check = MinThresholdScaleFactorRibbon
-print "check " + check; 
+print "check " + MaxPrintScaleFactor; 
 
 write test.stl
+
+reset ALL
+reset VDW
