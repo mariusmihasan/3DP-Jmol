@@ -1,1 +1,567 @@
 
+
+///This is where user input is required
+
+var hydrogenAtoms = 'off'  # or 'off'
+
+if (hydrogenAtoms=='on'); // no edits required
+  SET pdbAddHydrogens; // no edits required
+endif; // no edits required
+if (hydrogenAtoms=='off'); // no edits required
+  SET pdbAddHydrogens FALSE; // no edits required
+endif; // no edits required
+
+load =2HHB
+
+var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
+
+var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for sesurface and sassurface needs to be false. 
+
+var NucProtStruts = 1 // If nucleic acids are  are to be connected with the macromolecule.  0 or 1. 
+
+var PrintScaleFactorUser = 0; // this is where the size of printed model is indicate by user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feed-back from the console, smaller scales could be selected by user based on his preference. Scale in the console is %, but here should de devided by 100. For example, for a scale of 30%, here should be 0.3
+
+var colorPrinter = 'no'  # 'yes' or 'no' // Verry experimental. Preparation for color printing. A decision is needed here if required to implemnt. Yes means that output is obj and color, no means that output is stl and monochrome. Obj files are nor properly scaled yet, but can be done. 
+
+///This is where the required user input ends and the process starts. No edits below this line should be required. 
+//=================================================================================================================
+
+// 3DP-Jmol - a Jmol based script for automatically generating 3D printable molecular models based on pdb data.
+//Contributors: 
+// Dr. Marius Mihasan, Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
+// Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
+
+set echo wk 50% 100%;
+set echo wk center;
+font echo 22;
+color echo yellow;
+background echo [xA040A0];
+echo "         working...         ";
+refresh;
+
+spin off; anim off;
+delete solvent,ions,[NA],[K],[CL],[BR],[GOL],[DIO],[DOX],[NO],[NO3],[EDO],[DMS],[FMT],[ACT],[IPA]; //MM will keep hydrogens for now, needs a decision - maybe depending on style
+delete not (model=1.1);
+configuration 1; delete not selected; select all;
+center visible;
+set cartoonFancy on; 
+set hermiteLevel 4; 
+set ribbonAspectRatio 2;
+set hbondsSolid true;
+
+/* COLORS:  ==============================================
+*/
+cHb = 'deepskyblue'; // H bonds [xFDF5E6]
+cSurf = 'yellowTint'; // isosurfaces
+
+select protein;
+color backbone dodgerBlue;
+color trace dodgerBlue;
+color ribbons dodgerBlue;
+color cartoon dodgerBlue;
+
+select nucleic;
+color backbone mediumOrchid;
+color trace mediumOrchid;
+color ribbons mediumOrchid;
+color cartoon mediumOrchid;
+
+select all;
+color ssBonds yellow;
+
+function checkStruts() {  // for debugging ligand struts
+  display not ~poly;
+  display add connected(displayed);
+  print "Reset with 'display all' ";
+}
+
+// MM - resets the wireframe style 
+function rSet() {
+  // acts on current selection
+  wireframe only;
+  wireframe off;
+}
+
+define ~prot protein and polymerLength>4; 
+define ~dna dna and polymerLength>4; 
+define ~rna rna and polymerLength>4; 
+define ~poly ~prot or ~nuc; 
+define ~node alpha or (*.P and nucleic); 
+define ~nodeN ~node and nucleic; 
+SET pdbAddHydrogens 
+boundbox on;
+refresh;
+var centerStr = getProperty("boundBoxInfo", "center");
+var corner0Str = getProperty("boundBoxInfo", "corner0");
+var corner1Str = getProperty("boundBoxInfo", "corner1");
+var vectorStr = getProperty("boundBoxInfo", "vector");
+var center = [ centerStr.x, centerStr.y, centerStr.z ];
+var corner0 = [ corner0Str.x, corner0Str.y, corner0Str.z ];
+var corner1 = [ corner1Str.x, corner1Str.y, corner1Str.z ];
+var vector = [ vectorStr.x, vectorStr.y, vectorStr.z ];
+if (center == null || corner0 == null || corner1 == null || vector == null) {
+  print "ERROR: Bounding box data not retrieved.";
+  exit;
+}
+
+
+var length = 2 * vector[0];  // X-axis (width)
+var height = 2 * vector[1];  // Y-axis (height)
+var depth = 2 * vector[2];   // Z-axis (depth)
+var length_check = corner1[0] - corner0[0];
+var height_check = corner1[1] - corner0[1];
+var depth_check = corner1[2] - corner0[2];
+if (abs(length - length_check) > 0.1 || abs(height - height_check) > 0.1 || abs(depth - depth_check) > 0.1) {
+    length = length_check;
+    height = height_check;
+    depth = depth_check;
+}
+var volume = length * height * depth;
+var maxDim = length;
+var maxLabel = "Length";
+
+if (height > maxDim) {
+    maxDim = height;
+    maxLabel = "Height";
+}
+if (depth > maxDim) {
+    maxDim = depth;
+    maxLabel = "Depth";
+}
+boundbox off;
+
+var bondLengths = getProperty("bondInfo", "length_Ang")
+var MinBondLength = 10 
+for (var i = 1; i <= bondLengths.length; i = i + 1) {
+    if (bondLengths[i] < MinBondLength) {
+        MinBondLength = bondLengths[i]
+    }
+}
+// Retrieve the atom spacefill values from the atomInfo
+var atomData = getProperty("atomInfo");
+
+// Initialize the smallest and largest spacefill values with extreme initial values
+var minSpacefill = 10;  // Arbitrary large initial value
+var maxSpacefill = 0;   // Arbitrary small initial value
+
+// Loop through the atoms and find the minimum and maximum spacefill values
+for (var i = 1; i < atomData.length; i++) {
+    var spacefillValue = atomData[i].spacefill;
+    if (spacefillValue < minSpacefill) {
+        minSpacefill = spacefillValue;
+    }
+    if (spacefillValue > maxSpacefill) {
+        maxSpacefill = spacefillValue;
+    }
+}
+
+print "-- Setting up 3D printing environment ";
+var JMolStlScale = 10.0; 
+var MinPrintedObjDimen = 3.0 / JMolStlScale; 
+var RefBondLength = 2.86; 
+
+var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen 
+var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
+var AtomScalingFactor = 0.20; 
+var PrintBedMinDimension = 210.0 / JMolStlScale; 
+var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
+var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
+
+if (PrintScaleFactorUser == 0) {  // 
+    // When PrintScaleFactorUser is 0, apply the logic based on MaxPrintScaleFactor
+    if (MaxPrintScaleFactor < 1) {
+        PrintScaleFactor = MaxPrintScaleFactor;  // If MaxPrintScaleFactor is less than 1, use it
+    } else {
+        PrintScaleFactor = 1;  // Otherwise, set PrintScaleFactor to 1
+    }
+} else {
+    // When PrintScaleFactorUser is non-zero, set PrintScaleFactor to PrintScaleFactorUser
+    PrintScaleFactor = PrintScaleFactorUser;
+}
+var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
+var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
+var ActualAtomReqSize = minSpacefill
+var AtomsScaledPercent = point(((minSpacefill * AtomScalingFactor) / (MinPrintedObjDimen * PrintScaleFactor) * 100)+ 0.5);
+var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
+var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 5 + 0.5); 
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
+    if (AtomsScaledPercentMax2 > AtomsScaledPercentMax) {
+        AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
+    } else {
+        AtomsScaledPercent_corrected = AtomsScaledPercentMax;
+    }
+}
+
+var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/(AtomsScaledPercent_corrected * (minSpacefill/(AtomScalingFactor*100))); 
+var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5);
+var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2);
+var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; 
+var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); 
+var MinThresholdScaleFactorCartoon = MinPrintedObjDimen/2; 
+var MinThresholdScaleFactorSurface = 0.03; 
+var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
+
+/* IMPLEMENTING DIMENSIONS:  ==============================================
+*/
+bR = bonds_radius; /* bonds including for ligands) */
+aR = AtomsScaledPercent_corrected; /* atoms  including for ligands) */
+sR = (bonds_radius * 0.8); /* struts slighter thiner */ 
+ssR = (bonds_radius * 0.9); /* SSbonds slighter thiner */
+hR = (bonds_radius * 0.8); /* Hbonds  slighter thiner */
+bbR = (bR * 1.5); /* backbone thicker the a bond */
+tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bond */ // this is the width of the element. Thicknes is half, meaning bR
+/* RENDERING:  ==============================================
+*/
+
+if (opt == "ballandstick");
+    rSet();
+    calculate hbonds // this needs to be decided
+    color hbonds @cHb;
+    calculate struts // this needs to be decided, related to Angels script. 
+    wireframe @bR; 
+    hbonds @hR;
+    struts @sR;
+    ssBonds @ssR;
+    spacefill @{aR}%;
+endif;
+
+// For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/).
+
+if (opt=='backbone');
+    // Protein backbone
+    select ~prot;
+    rSet();
+    hbonds off;
+    isosurface delete;
+    backbone @{-bbR};
+    set ssbonds backbone;
+    ssBonds @ssR;
+    select all;
+endif;
+
+if (opt=='trace');
+// Protein trace
+    select ~prot;
+    rSet();
+    hbonds off;
+    isosurface delete;
+    trace @{-tR};
+    set ssbonds backbone;
+    ssBonds @ssR;
+    select all;
+endif;
+
+//cartoon needs work. Arrows tip is much to thin to ensure succesfull print and dont know how to change it. Also, secundary structures are rendered thinner than the coil. 
+if (opt=='cartoon');
+// Protein ribbon
+  select ~prot;
+  rSet();
+  hbonds off;
+  isosurface delete;
+  cartoon @{-tR};
+  set ssbonds backbone;
+  ssBonds @ssR;
+  select all;
+endif;
+
+if (opt=='ribbon');
+// Protein ribbon
+  select ~prot;
+  rSet();
+  hbonds off;
+  isosurface delete;
+  ribbons @{-tR};
+  set ssbonds backbone;
+  ssBonds @ssR;
+  select all;
+endif;
+
+if (opt=='backbone');
+// DNA backbone
+  select ~nuc;
+  rSet();
+  isosurface delete;
+  backbone @{-bbR};
+  calculate hbonds;
+  hbonds @hR;
+  color hbonds @cHb;
+  select ~dna;
+  wireframe @{bR*1.2};
+  select ~rna;
+  wireframe @{bR*1.0};
+  select all;
+endif;
+
+if (opt=='trace');
+// DNA trace
+  select ~nuc;
+  rSet();
+  isosurface delete;
+  trace @{-tR};
+  calculate hbonds;
+  hbonds @hR;
+  color hbonds @cHb;
+  select ~dna;
+  wireframe @{bR*1.2};
+  select ~rna;
+  wireframe @{bR*1.0};
+  select all;
+  endif;
+
+if (opt=='ribbon');
+  // DNA ribbon
+  select ~nuc;
+  rSet();
+  isosurface delete;
+  ribbons @{-tR};
+  calculate hbonds;
+  hbonds @hR;
+  color hbonds @cHb;
+  select ~dna;
+  wireframe @{bR*1.2};
+  select ~rna;
+  wireframe @{bR*1.0};
+  select all;
+endif;
+
+if (opt=='blocks');// dont think we need this one
+// DNA/RNA blocks
+  select ~nuc;
+  rSet();
+  isosurface delete;
+  calculate hbonds;
+  hbonds @hR;
+  color hbonds @cHb;
+  set cartoonBlocks on;
+  set cartoonBlockHeight @{tR*0.8};
+  cartoon @{-tR};
+  select all;
+endif;
+
+if (opt=='spacefill'); // dont think we need this one
+// whole model
+  select all;
+  rSet();
+  isosurface delete;
+  spacefill 100%// from AH @{-aR}; // this needs some thought, might not work as expected
+  set ssbonds sidechain;
+  ssBonds @ssR;
+endif;
+
+// Ligands
+  select (not ~poly);
+  rSet();
+  wireframe @bR;
+  spacefill @{aR}%;;
+
+// Struts
+  select all;
+  connect struts delete;
+  select protein;
+  calculate struts;
+select all;
+
+// Ligand<->Protein/Nucleic struts
+function ligandProteinStruts() {
+  var ~L = {(not ~poly)};
+  if (~L.length==0) { return; /* no ligands */ }
+
+  var ~LG = getProperty('ligandInfo.ligands');
+
+  /*
+  // add other HET ligands not listed:  produces too many weird struts
+  HN = getProperty('fileInfo.hetnam').lines;
+  for (var i=1; i<=HN.size; i++) {
+    var m = HN[i];
+    m = m[12][14].trim(); //column positions of group name
+    var found = false;
+    for (var j=1; j<=~LG.size; j++) {
+      if (~LG[j].groupNames == m) { found = true; }
+    }
+    x = {m}
+    if (!found) {~LG.push({ "groupNames":m, "atoms":{@m} }) }
+  }
+  */
+
+  for (i=1; i<=~LG.size; i++) {
+    if (~LG[i].atoms.size == 1) {
+        /* for ONE-ATOM LIGANDS (ions):
+           links ion to the closest alphaCarbon or P (strut to trace or backbone)
+        */
+      var ~ligA = ~LG[i].atoms;
+      var ~protA = {~poly} and connected({~ligA}) and within(chain, {~ligA});
+      var D = [];
+      for (var j in @~protA) {
+        D.push( [j.distance( {~ligA} ), {(within(group, {j}) and ~node)}.atomIndex ] );
+      }
+      D.sort(1);
+      define ~pA (atomIndex=@{D[1].[2]});
+      connect ( {~ligA} ) ( within(group, ~pA) and ~node ) strut;
+      print "->> Struts for one-atom ligand #" + i + ", " + ~LG[i].groupNames;
+    } else { //>1
+        /* for LINKED LIGANDS:
+            links ~ligA to the alphaCarbon or P of that residue (strut to trace or backbone)
+        */
+      var ~lig = ~LG[i].atoms;
+      var ~protA = {~poly} and connected({~lig}); // linked atoms in protein
+      if ( ~protA.size>0 ) {
+        var ~ligA = {~lig} and connected({~protA}); // linked atom in ligand
+        connect ( {~ligA} ) ( within(group, {~protA}) and ~node ) strut;
+        print "->> Struts for linked atom in ligand #" + i + ", " + ~LG[i].groupNames;
+      } else { // NON-LINKED LIGAND
+        var ~lig = ~LG[i].atoms;
+        var nLigandStruts = 3;
+        var D = []; // distances between ligand atoms and protein alpha or nucleic P atoms
+        var P = {(~node and within(6.0,~lig))};
+        for (var j=1; j<={~lig}.size; j++) {
+          for (var k=1; k<=P.size; k++) {
+            D.push( [{~lig}[j].distance(P[k]), {~lig}[j].atomIndex, P[k].atomIndex] );
+          }
+        }
+        D.sort(1); // lowest distances first
+        
+        /* to pick "nLigandStruts" closest ligand-protein atom pairs, avoiding 2 struts on the same atom
+        */
+        var strutL = []; 
+        var strutP = [];
+        for (var j=1; j<D.size; j++) {
+          var ~ligA = D[j].[2]; //atomIndex numbers
+          var ~protA = D[j].[3];
+          if ( !strutL.find(~ligA) && !strutP.find(~protA) ) { 
+            strutL.push(~ligA); strutP.push(~protA);
+          }
+          if (strutL.length==nLigandStruts) { break; }
+        }
+        for (var j=1; j<=nLigandStruts; j++) { /* add struts from ligand to protein */
+          connect ({atomIndex=@{strutL[j]}}) ({atomIndex=@{strutP[j]}}) strut;
+        }
+        print "->> Struts for non-linked ligand #" + i + ", " + ~LG[i].groupNames;
+      } //end not linked
+    } //end >1
+  } //end for i
+  select all;
+} //end function
+
+// struts between Protein and Nucleic:
+function NucleicProteinStruts() {
+  var nNucProtStruts = 6;
+  var D = []; // distances between nucleic and protein node atoms (Calpha and P)
+  define ~nodeN ~node and nucleic;
+  var P = {(~node and protein and within(6.0,~nodeN))};
+  for (var j=1; j<={~nodeN}.size; j++) {
+    for (var k=1; k<=P.size; k++) {
+        D.push( [{~nodeN}[j].distance(P[k]), {~nodeN}[j].atomIndex, P[k].atomIndex] );
+    }
+  }
+  D.sort(1); // lowest distances first
+  
+  var strutN = []; 
+  var strutP = [];
+  for (var j=1; j<D.size; j++) {
+    var ~nucA = D[j].[2]; //atomIndex numbers
+    var ~protA = D[j].[3];
+    if ( !strutN.find(~nucA) && !strutP.find(~protA) ) { 
+        strutN.push(~nucA); strutP.push(~protA);
+    }
+    if (strutN.length==nNucProtStruts) { break; }
+  }
+  for (var j=1; j<=nNucProtStruts; j++) { /* add struts from nucleic to protein */ 
+    connect ({atomIndex=@{strutN[j]}}) ({atomIndex=@{strutP[j]}}) strut;
+  }
+} //end function
+
+if (LigStruts) { ligandProteinStruts(); }
+if (NucProtStruts==1) { NucleicProteinStruts(); }
+
+struts @sR; 
+color struts translucent 0.4 navajoWhite;
+/* affects both default (protein) struts and those created with "connect" */
+
+
+// Molecular surfaces 
+if (opt.find('surface'));
+echo "  computing surface...  ";
+refresh;
+if (opt=='sesurface') {
+  isosurface resolution 3 select(~poly) only molecular; // resolution x is to increase the quality of the exported surface. Default is resolution 1 which is fast, but of low quality. 2 is so and so, 3 looks good enough and computation time for 2HHB is acceptable, for 4 and more  computation time increases. Might require some tweaking, maybe somehow related to the prin scale - low print scare should require lower resolution. 
+}
+if (opt=='sasurface') {
+  isosurface resolution 3 select(~poly) only sasurface; 
+}
+color isosurface @cSurf;
+center all;
+select ~poly and not connected(not ~poly);
+hBonds 0;
+rSet(); // hide other renderings inside the surface
+struts 0;
+select all;
+endif;
+
+select all;
+echo;
+refresh;
+
+print "----------------------------------------------";
+print "--- Start of 3D Printing RECOMMENDATIONS ----";
+print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer. Using SLA printers is possible, but not yet tested.";
+var MaxPrintScale = MaxPrintScaleFactor*100;
+var MinPrintScale = MinPrintScaleFactor*100;
+var PrintScale = PrintScaleFactor*100;
+var MaxPrintScale_round = point(MaxPrintScale + 0.5);    // rounding up
+var MinPrintScale_round = point(MinPrintScale + 0.5);    // rounding up
+var PrintScale_round = point(PrintScale + 0.5);    // rounding up
+var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var max_length_mm = point(max_length_raw + 0.5);  // rounding up
+var max_height_mm = point(max_height_raw + 0.5);  // rounding up
+var max_depth_mm = point(max_depth_raw + 0.5);    // rounding up
+print "-->Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+var min_length_mm = point(min_length_raw + 0.5);  // rounding up
+var min_height_mm = point(min_height_raw + 0.5);  // rounding up
+var min_depth_mm = point(min_depth_raw + 0.5);    // rounding up
+print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+if (MaxPrintScaleFactor > 1) {
+    print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
+    print "Your molecule is rather small. All styles are suitable and can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorTrace) {
+    print "Your molecule is medium-sized. All styles except Ball and Stick can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorRibbon) {
+    print "Your molecule is medium-sized. All styles except Ball and Stick and Trace can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBackbone) {
+    print "Your molecule is rather large. Only Backbone and Surface style can be printed.";
+} else if (MaxPrintScaleFactor >= MinThresholdScaleFactorSurface) {
+    print "Your molecule is large. Only Surface style can be printed.";
+} else {
+    print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
+}
+print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
+print "- the minimum allowed scale for the Ball and stick style is " + minThresholdScaleFactorBallStick_display + " %;";
+print "-- the minimum allowed scale for the Trace style is 23%;";
+print "--- the minimum allowed scale for the Ribbon style is 17%;";
+print "---- the minimum allowed scale for the Backbone style is 16%;";
+print "----- The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
+print "--- End of 3D Printing RECOMMENDATIONS ----";
+print "--------------------------------------------";
+var user_length_raw = length * PrintScaleFactor * JMolStlScale;
+var user_height_raw = height * PrintScaleFactor * JMolStlScale;
+var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
+var user_length_mm = point(user_length_raw + 0.5);  // rounding up
+var user_height_mm = point(user_height_raw + 0.5);  // rounding up
+var user_depth_mm = point(user_depth_raw + 0.5);    // rounding up
+print "Printed at the current scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
+print "--------------------------------------------";
+if (colorPrinter=='yes');
+  write test_color.obj;
+endif;
+if (colorPrinter=='no');
+  write test.stl;
+endif;
+
