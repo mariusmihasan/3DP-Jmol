@@ -20,9 +20,9 @@ endif;
 //load *8jiv //ribosome from EBI - extremely large
 //load =1rbp //large ?? protein, b sheets example
 //load =7RT0 //medium protein
-//load =4ins //small protein
+load =4ins //small protein
 //load =4rna //tRNA, printing in balls and sticks was difficult
-load =2bna //DNA, printing in balls and sticks was easy 
+//load =2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recommended
 
 // Issue observed - some pdb are loaded in more copies, other not complete. Have something to do with the biounit? How this can be solved?
@@ -176,8 +176,17 @@ for (var i = 1; i < atomData.length; i++) {
 
 print "-- Setting up 3D printing environment ";
 // Here we set-up and list all technical variables related to the 3d-printers, dimensions, thresholds etc. These are important for calculations and are defined here for easy modification.
+
+var colorPrinter = 'yes'  # 'yes' or 'no' // Preparation for color printing. A decision is needed here if required to implemnt. Yes means that output is obj and color, no means that output is stl and monochrome.
  
-var JMolStlScale = 10.0; // Jmol exports 1 A as 10 mm in stl files. This means that all dimesnions in Jmol are exported 10x larger. We will do all math in A, and for the final result in mm with will multiply this. We will keep it here for reference and in case JMol changes this in the future.// Stl files are only in one color. OBJ export keeps colors and should be supported by all slicers. When exported as obj, JMolStlScale = 1.0 but math in the script should be checked especially for atom sizes.
+//var JMolStlScale - Jmol exports 1 A as 10 mm in stl files, but as 1 A for obj files. This means that all dimensions in Jmol are exported 10x larger. We will do all math in A, and for the final result in mm  will multiply this. We will keep it here for reference and in case JMol changes this in the future.// Stl files are only in one color. OBJ export keeps colors and should be supported by all slicers. When exported as obj, JMolStlScale = 1.0 but math in the script should be checked especially for atom sizes, scalefactors and displayed printing scale. Will deal with that later when color printing is available.
+
+if (colorPrinter=='yes');
+  var JMolStlScale = 10.0; //As of now, calculation of atoms radius for color printing at this SMolScale does not work and needs to be re-evaluated. Will deal with that later.
+endif;
+if (colorPrinter=='no');
+  var JMolStlScale = 10.0;
+endif;
 
 var MinPrintedObjDimen = 3.0 / JMolStlScale; //minimum printed dimension of an object (bond, or thikness). In the paper is 2.6. We will use 3 mm for more sturdy models. Divided by the JMolStlScale as we work in A. Some limits (atoms vWr % in this script, maybe other, will depend on this)
 
@@ -269,9 +278,9 @@ var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); // If  ribbon
 var MinThresholdScaleFactorCartoon = MinPrintedObjDimen/2; // Same as logic as for backbone, but does not work - coils are rendered ok by (tR = (bR * 2)), helices and sheets are not. Dont know how to connect the helices and sheets with the coils dimensions (tR = (bR * 2). This needs work, arrows dimensions are not tacken into account
 
 // Spacefill — will continue here
-var MinThresholdScaleFactorSurface = 0.025; //temporary, from the paper, needs math. I will be used for both CPK (spacefill) and both surfaces (ses and sas) 
+var MinThresholdScaleFactorSurface = 0.025; //from the paper, needs math. I will be used for both CPK (spacefill) and both surfaces (ses and sas) 
 
-// Calculate MinPrintScaleFactor - planned to be used for calculating dimensions later. Lowest value among the set. Needs testing.
+// Calculate MinPrintScaleFactor - planned to be used for calculating dimensions later. Lowest value among the set.
 var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 
 print "----------------------------------------------";
@@ -683,4 +692,9 @@ print "MinThresholdScaleFactorSpacefill: " + MinThresholdScaleFactorSpacefill+ "
 var check = MinThresholdScaleFactorRibbon
 print "check " + MaxPrintScaleFactor; 
 
-write test.stl
+if (colorPrinter=='yes');
+  write test_color.obj;
+endif;
+if (colorPrinter=='no');
+  write test.stl;
+endif;
