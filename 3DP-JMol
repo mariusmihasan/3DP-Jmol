@@ -1,4 +1,3 @@
-//test for branching fynctionality
 t = now(); // timer start
 ///This is where user input is required
 
@@ -548,5 +547,5 @@ endif;
 if (colorPrinter=='no');
   write test.stl;
 endif;
-print "Time for running the script: " + now(t) + "ms";
+print "Time for running the script v.alpha_public is: " + now(t) + "ms";
 print now(t); //prints the time required to run the script.
