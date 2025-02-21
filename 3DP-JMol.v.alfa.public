@@ -10,7 +10,7 @@ if (hydrogenAtoms=='off'); // no edits required
   SET pdbAddHydrogens FALSE; // no edits required
 endif; // no edits required
 
-load =2HHB // Pleaser type here the 4 character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
+load =2HHB // Please type here the 4-characters code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
 var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
 
