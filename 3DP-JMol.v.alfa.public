@@ -547,5 +547,4 @@ endif;
 if (colorPrinter=='no');
   write test.stl;
 endif;
-print "Time for running the script v.alpha_public is: " + now(t) + "ms";
-print now(t); //prints the time required to run the script.
+print "Time for running the script version alfa.public is: " + now(t) + "ms";
