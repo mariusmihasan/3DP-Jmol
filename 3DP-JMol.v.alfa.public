@@ -1,7 +1,7 @@
 t = now(); // timer start
 ///This is where user input is required
 
-var hydrogenAtoms = 'off'  # 'on'  or 'off'
+var hydrogenAtoms = 'off'  # 'on'  or 'off'// Recommended to be off unless you have particular reasons to have the hydrogen atoms shown in the model.  H atoms might be required when the model is represented as ball and sticks, or when ligands are present. If not H atoms are not mandatory, keep in mind that keeping this option on will increase the minimum scale at which the model can be printed. 
 
 if (hydrogenAtoms=='on'); // no edits required
   SET pdbAddHydrogens; // no edits required
@@ -14,14 +14,13 @@ load =2HHB
 
 var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
 
-var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for sesurface and sassurface needs to be false. 
+var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sassurface) needs to be false. 
 
-var NucProtStruts = 1 // If nucleic acids are  are to be connected with the macromolecule.  0 or 1. 
+var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. 
 
-var PrintScaleFactorUser = 0; // this is where the size of printed model is indicate by user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feed-back from the console, smaller scales could be selected by user based on his preference. Scale in the console is %, but here should de devided by 100. For example, for a scale of 30%, here should be 0.3
+var PrintScaleFactorUser = 0; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
-var colorPrinter = 'no'  # 'yes' or 'no' // Verry experimental. Preparation for color printing. A decision is needed here if required to implemnt. Yes means that output is obj and color, no means that output is stl and monochrome. Obj files are nor properly scaled yet, but can be done. 
-
+var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 ///This is where the required user input ends and the process starts. No edits below this line should be required. 
 //=================================================================================================================
 
@@ -30,7 +29,6 @@ var colorPrinter = 'no'  # 'yes' or 'no' // Verry experimental. Preparation for 
 // Dr. Marius Mihasan, Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
 // Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/)
 
-set echo wk 50% 100%;
 set echo wk center;
 font echo 22;
 color echo yellow;
