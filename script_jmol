@@ -26,7 +26,7 @@ load =4ins //small protein
 //load =2bna //DNA, printing in balls and sticks was easy 
 //load :nicotine //small molecule, printing in balls and sticks at 100% is recommended
 
-// Issue observed - some pdb are loaded in more copies, other not complete. Have something to do with the biounit? How this can be solved?
+// Issue observed - some pdb are loaded in more copies, other not complete. Have something to do with the biounit? How this can be solved? Need to test the suggestion from Amada -//load =4ins FILTER "BIOMOLECULE 1" // 
 // This part is an initial set-up of the molecule. 
 // From Dr. Angel Herráez
 set echo wk 50% 100%;
