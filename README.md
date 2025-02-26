@@ -19,7 +19,7 @@ The most user-intensive step in generating 3D printable models of macromolecular
 8. Check the instructions in the Console and, if required, based on the indications and your choice, come back to step 4 and repeat. The path for the test.stl  file generated is indicated before the last line in the Console. Print it and enjoy!
 
 # **Contributors**: 
-- [Dr. Marius Mihasan](www.modelemoleculare.ro), Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
+- [Dr. Marius Mihasan](https://modelemoleculare.ro/), Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania, (www.modelemoleculare.ro)
 - [Dr. Angel Herráez](https://biomodel.uah.es/), Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain 
 
 # **Contact**: 
