@@ -16,7 +16,7 @@ The most user-intensive step in generating 3D printable models of macromolecular
 7. Wait patiently until JMol generates your printable file. This should be signaled by the appearance of a text similar to: <br>
 `OK 20527284 Stl /Users/mariusmihasan/test.stl`<br>
 `Time for running the script version alfa.public is: 4956ms`
-9. Check the instructions in the Console and, if required, based on the indications and your choice, come back to step 4 and repeat. The path for the test.stl  file generated is indicated before the last line in the Console. Print it and enjoy!
+9. Check the instructions in the Console and, if required, based on the indications and your choice, come back to step 4 and repeat. The path for the `test.stl`  file generated is indicated before the last line in the Console. Print it and enjoy!
 
 # **Contributors**: 
 - [Dr. Marius Mihasan](https://modelemoleculare.ro/), Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania
