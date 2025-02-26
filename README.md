@@ -14,8 +14,8 @@ The most user-intensive step in generating 3D printable models of macromolecular
 5. Open the previously unzipped  Jmol application and navigate in the menu to File>Console….  A new window entitled Console will open; 
 6. Copy the entire content of the text file edited in step 4 and paste it in the Console window using the Ctrl-V  keyboard combination (or Cmd+V for Mac);
 7. Wait patiently until JMol generates your printable file. This should be signaled by the appearance of a text similar to: 
-       OK 20527284 Stl /Users/mariusmihasan/test.stl
-       Time for running the script version alfa.public is: 4956ms
+       `OK 20527284 Stl /Users/mariusmihasan/test.stl
+       Time for running the script version alfa.public is: 4956ms`
 8. Check the instructions in the Console and, if required, based on the indications and your choice, come back to step 4 and repeat. The path for the test.stl  file generated is indicated before the last line in the Console. Print it and enjoy!
 
 # **Contributors**: 
