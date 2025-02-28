@@ -1,7 +1,7 @@
 t = now(); // timer start
 ///This is where user input is required
 
-var hydrogenAtoms = 'off'  # 'on'  or 'off'// Recommended to be off unless you have particular reasons to have the hydrogen atoms shown in the model.  H atoms might be required when the model is represented as ball and sticks, or when ligands are present. If not H atoms are not mandatory, keep in mind that keeping this option on will increase the minimum scale at which the model can be printed. 
+var hydrogenAtoms = 'on'  # 'on'  or 'off'// Recommended to be off unless you have particular reasons to have the hydrogen atoms shown in the model.  H atoms might be required when the model is represented as ball and sticks, or when ligands are present. If not H atoms are not mandatory, keep in mind that keeping this option on will increase the minimum scale at which the model can be printed. 
 
 if (hydrogenAtoms=='on'); // no edits required
   SET pdbAddHydrogens; // no edits required
@@ -162,23 +162,23 @@ if (PrintScaleFactorUser == 0) {  //
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
 var AtomsScaledPercent = point(((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)+ 0.5);
 var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
-var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 0.5); 
 var AtomsScaledPercent_corrected = AtomsScaledPercent;
-if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
-    if (AtomsScaledPercentMax2 > AtomsScaledPercentMax) {
-        AtomsScaledPercent_corrected = AtomsScaledPercentMax2;
-    } else {
-        AtomsScaledPercent_corrected = AtomsScaledPercentMax;
-    }
+if (AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
+    AtomsScaledPercent_corrected = AtomsScaledPercentMax;
 }
 
 var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/((2*(AtomsScaledPercentMax / 100.0) * (minSpacefill/AtomScalingFactor)))
 var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5);
 var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2);
+var MinThresholdScaleFactorBackbone_display = point((MinThresholdScaleFactorBackbone * 100) +0.5);
 var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; 
+var MinThresholdScaleFactorTrace_display = point((MinThresholdScaleFactorTrace * 100) +0.5);
 var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); 
+var MinThresholdScaleFactorRibbon_display = point((MinThresholdScaleFactorRibbon * 100) +0.5);
 var MinThresholdScaleFactorCartoon = MinPrintedObjDimen/2; 
+var MinThresholdScaleFactorCartoon_display = point((MinThresholdScaleFactorCartoon * 100) +0.5);
 var MinThresholdScaleFactorSurface = 0.03; 
+var MinThresholdScaleFactorSurface_display = point((MinThresholdScaleFactorSurface * 100) +0.5);
 var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 
 /* IMPLEMENTING DIMENSIONS:  ==============================================
@@ -522,9 +522,9 @@ if (MaxPrintScaleFactor > 1) {
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
 print "- the minimum allowed scale for the Ball and stick style is " + minThresholdScaleFactorBallStick_display + " %;";
-print "-- the minimum allowed scale for the Trace style is 23%;";
-print "--- the minimum allowed scale for the Ribbon style is 17%;";
-print "---- the minimum allowed scale for the Backbone style is 16%;";
+print "-- the minimum allowed scale for the Trace style is " + MinThresholdScaleFactorTrace_display + " %;";
+print "--- the minimum allowed scale for the Ribbon style is " + MinThresholdScaleFactorRibbon_display + " %;"
+print "---- the minimum allowed scale for the Backbone style is " + MinThresholdScaleFactorBackbone_display + " %;"
 print "----- The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
 print "--- End of 3D Printing RECOMMENDATIONS ----";
 print "--------------------------------------------";
