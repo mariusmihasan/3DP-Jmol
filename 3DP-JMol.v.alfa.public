@@ -10,15 +10,15 @@ if (hydrogenAtoms=='off'); // no edits required
   SET pdbAddHydrogens FALSE; // no edits required
 endif; // no edits required
 
-load =4INS //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
+load =4BNA //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
+var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
 
 var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sassurface) needs to be false. 
 
 var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. 
 
-var PrintScaleFactorUser = 0; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
+var PrintScaleFactorUser = 0.34; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
 var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 ///This is where the required user input ends and the process starts. No edits below this line should be required. 
@@ -143,7 +143,7 @@ var RefBondLength = 2.86;
 
 var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen 
 var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
-var AtomScalingFactor = 0.20; 
+var AtomScalingFactor = 0.23; 
 var PrintBedMinDimension = 210.0 / JMolStlScale; 
 var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
@@ -160,12 +160,9 @@ if (PrintScaleFactorUser == 0) {  //
     PrintScaleFactor = PrintScaleFactorUser;
 }
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
-var MinAtomReqSize = MinPrintedObjDimen * PrintScaleFactor
-var ActualAtomReqSize = minSpacefill
-var AtomsScaledPercent = point(((minSpacefill * AtomScalingFactor) / (MinPrintedObjDimen * PrintScaleFactor) * 100)+ 0.5);
+var AtomsScaledPercent = point(((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)+ 0.5);
 var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
-var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 5 + 0.5); 
-var AtomsScaledPercent_corrected = AtomsScaledPercent;
+var AtomsScaledPercentMax2 = point((minSpacefill/(bonds_radius * 2)) * 100 + 0.5); 
 var AtomsScaledPercent_corrected = AtomsScaledPercent;
 if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
     if (AtomsScaledPercentMax2 > AtomsScaledPercentMax) {
@@ -175,7 +172,7 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax2 || AtomsScaledPercent_
     }
 }
 
-var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/(AtomsScaledPercent_corrected * (minSpacefill/(AtomScalingFactor*100))); 
+var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/((2*(AtomsScaledPercentMax / 100.0) * (minSpacefill/AtomScalingFactor)))
 var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5);
 var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2);
 var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; 
@@ -188,9 +185,9 @@ var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 */
 bR = bonds_radius; /* bonds including for ligands) */
 aR = AtomsScaledPercent_corrected; /* atoms  including for ligands) */
-sR = (bonds_radius * 0.8); /* struts slighter thiner */ 
-ssR = (bonds_radius * 0.9); /* SSbonds slighter thiner */
-hR = (bonds_radius * 0.8); /* Hbonds  slighter thiner */
+sR = (bonds_radius * 0.8); /* struts slighter thinner */ 
+ssR = (bonds_radius * 0.9); /* SSbonds slighter thinner */
+hR = (bonds_radius * 0.8); /* Hbonds  slighter thinner */
 bbR = (bR * 1.5); /* backbone thicker the a bond */
 tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bond */ // this is the width of the element. Thicknes is half, meaning bR
 /* RENDERING:  ==============================================
