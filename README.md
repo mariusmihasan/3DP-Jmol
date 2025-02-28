@@ -1,6 +1,6 @@
 **3DP-Jmol** is a Jmol/JSmol script that automatically generates 3D printable molecular models from structural data.
 
-Have you ever wanted/needed a model of a macromolecule from PDB but were unable to find a suitable printable file? Did you not have the time and patience to learn ChimeraX or PyMol to make it yourself? Then **3DP-Jmol** is something you need to try. 
+Have you ever wanted/needed a model of a macromolecule from PDB but were unable to find a suitable printable file? You do not have the time and patience to learn ChimeraX or PyMol to make it yourself? Then **3DP-Jmol** is something you need to try. 
 
 The most user-intensive step in generating 3D printable models of macromolecular structures is by far the conversion of the structural data into the stl file. This step is key not only for the printability of the model but also for its success as an educational or demonstration material. Important key information related to the target molecule such as size, atoms, and bond dimensions must be correlated with the final dimensions of the physical model and printing hardware. Hence we started developing 3DP-Jmol – a script that automatically generates 3D printable molecular models from structural data based on very minimal user input.  
 
