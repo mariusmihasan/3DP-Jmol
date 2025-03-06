@@ -7,7 +7,7 @@ The most user-intensive step in generating 3D printable models of macromolecular
 **3DP-Jmol** is currently under development and new features are added constantly. Although we expect things to run smoothly, your experience may vary.
 
 # **Brief instructions**
-1. Download and unzip [JMol](https://jmol.sourceforge.net/), an open-source Java viewer for chemical structures in 3D;
+1. Download and unzip [Jmol](https://jmol.sourceforge.net/), an open-source Java viewer for chemical structures in 3D;
 2. Access the GitHub for  3DP-Jmol and under Assets download the  Source code (zip) file;
 3. Unzip it and open the  3DP-JMol.v.xxxxx file with your prefered text editor;
 4. Edit the first lines of the file as indicated to select your molecule of interest and other relevant parameters. Read carefully and only edit the lines indicated. 
