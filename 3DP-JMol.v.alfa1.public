@@ -49,7 +49,9 @@ set hbondsSolid true;
 /* COLORS:  ==============================================
 */
 cHb = 'deepskyblue'; // H bonds [xFDF5E6]
-cSurf = 'yellowTint'; // isosurfaces
+cSurf = 'yellowTint'; // isosurfaces for proteins
+cSurfDNA = 'aliceblue'; // isosurfaces for proteins
+cSurfRNA = 'beige'; // isosurfaces for proteins
 
 select protein;
 color backbone dodgerBlue;
@@ -72,7 +74,7 @@ function checkStruts() {  // for debugging ligand struts
   print "Reset with 'display all' ";
 }
 
-// MM - resets the wireframe style 
+// MM - resets the view style 
 function rSet() {
   // acts on current selection
   wireframe only;
@@ -81,11 +83,12 @@ function rSet() {
 
 define ~prot protein and polymerLength>4; 
 define ~dna dna and polymerLength>4; 
-define ~rna rna and polymerLength>4; 
+define ~rna rna and polymerLength>4;
+define ~nuc ~dna or ~rna;
 define ~poly ~prot or ~nuc; 
 define ~node alpha or (*.P and nucleic); 
 define ~nodeN ~node and nucleic; 
-SET pdbAddHydrogens 
+print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
 boundbox on;
 refresh;
 var centerStr = getProperty("boundBoxInfo", "center");
@@ -100,14 +103,14 @@ if (center == null || corner0 == null || corner1 == null || vector == null) {
   print "ERROR: Bounding box data not retrieved.";
   exit;
 }
-
-
 var length = 2 * vector[0];  // X-axis (width)
 var height = 2 * vector[1];  // Y-axis (height)
 var depth = 2 * vector[2];   // Z-axis (depth)
 var length_check = corner1[0] - corner0[0];
 var height_check = corner1[1] - corner0[1];
 var depth_check = corner1[2] - corner0[2];
+
+// Ensure consistency
 if (abs(length - length_check) > 0.1 || abs(height - height_check) > 0.1 || abs(depth - depth_check) > 0.1) {
     length = length_check;
     height = height_check;
@@ -116,7 +119,6 @@ if (abs(length - length_check) > 0.1 || abs(height - height_check) > 0.1 || abs(
 var volume = length * height * depth;
 var maxDim = length;
 var maxLabel = "Length";
-
 if (height > maxDim) {
     maxDim = height;
     maxLabel = "Height";
@@ -126,25 +128,18 @@ if (depth > maxDim) {
     maxLabel = "Depth";
 }
 boundbox off;
-
-// Identify the length of shortest bond
 var MinBondLength = {*}.bonds.length.min
-print "MinBondLength: " + MinBondLength
-// Identify spacefill values for the smallest and largest atom
 var minSpacefill = {*}.spacefill.min
 var maxSpacefill = {*}.spacefill.max
-print "min: " + minSpacefill + " max: " + maxSpacefill
-
 
 print "-- Setting up 3D printing environment ";
-var JMolStlScale = 10.0; 
-var MinPrintedObjDimen = 3.0 / JMolStlScale; 
+var JMolStlScale = 10.0;
+var MinPrintedObjDimen = 3.0 / JMolStlScale;
 var RefBondLength = 2.86; 
-
-var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen 
+var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen ;
 var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
 var AtomScalingFactor = 0.23; 
-var PrintBedMinDimension = 210.0 / JMolStlScale; 
+var PrintBedMinDimension = 210.0 / JMolStlScale;
 var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
 var PrintScaleFactor = MaxPrintScaleFactor;  // Initialize PrintScaleFactor with MaxPrintScaleFactor
 
@@ -159,42 +154,52 @@ if (PrintScaleFactorUser == 0) {  //
     // When PrintScaleFactorUser is non-zero, set PrintScaleFactor to PrintScaleFactorUser
     PrintScaleFactor = PrintScaleFactorUser;
 }
+
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
-var AtomsScaledPercent = point(((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)+ 0.5);
-var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100 + 0.5);
+var AtomsScaledPercent = point((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)%0
+var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
+var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
 var AtomsScaledPercent_corrected = AtomsScaledPercent;
 if (AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
     AtomsScaledPercent_corrected = AtomsScaledPercentMax;
 }
-
-var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/((2*(AtomsScaledPercentMax / 100.0) * (minSpacefill/AtomScalingFactor)))
-var MinThresholdScaleFactorBallStick_display = point((MinThresholdScaleFactorBallStick * 100) +0.5);
-var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2);
-var MinThresholdScaleFactorBackbone_display = point((MinThresholdScaleFactorBackbone * 100) +0.5);
+var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/((2*(AtomsScaledPercentMax / 100.0) * (minSpacefill/AtomScalingFactor))); 
+var MinThresholdScaleFactorBallStick_display = point(MinThresholdScaleFactorBallStick * 100)%0; // for display as feedback for user
+var MinThresholdScaleFactorBallStick_display = point(MinThresholdScaleFactorBallStick * 100)%0;
+var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2); 
+var MinThresholdScaleFactorBackbone_display = point(MinThresholdScaleFactorBackbone * 100)%0;
 var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; 
-var MinThresholdScaleFactorTrace_display = point((MinThresholdScaleFactorTrace * 100) +0.5);
+var MinThresholdScaleFactorTrace_display = point(MinThresholdScaleFactorTrace * 100)%0;
 var MinThresholdScaleFactorRibbon = MinPrintedObjDimen/(0.85 * 2); 
-var MinThresholdScaleFactorRibbon_display = point((MinThresholdScaleFactorRibbon * 100) +0.5);
+var MinThresholdScaleFactorRibbon_display = point(MinThresholdScaleFactorRibbon * 100)%0;
+var MinThresholdScaleFactorBlocks = 0.1; 
+var MinThresholdScaleFactorBlocks_display = point(MinThresholdScaleFactorRibbon * 100)%0;
 var MinThresholdScaleFactorCartoon = MinPrintedObjDimen/2; 
-var MinThresholdScaleFactorCartoon_display = point((MinThresholdScaleFactorCartoon * 100) +0.5);
-var MinThresholdScaleFactorSurface = 0.03; 
-var MinThresholdScaleFactorSurface_display = point((MinThresholdScaleFactorSurface * 100) +0.5);
+var MinThresholdScaleFactorCartoon_display = point(MinThresholdScaleFactorCartoon * 100)%0;
+var MinThresholdScaleFactorSpacefill = 0.025; // needs math, same as surface bellow
+var MinThresholdScaleFactorSurface = 0.025; //from the paper, needs math. I will use it for both CPK (spacefill) and both surfaces (ses and sas) 
+var MinThresholdScaleFactorSurface_display = point(MinThresholdScaleFactorSurface * 100)%0;
 var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
 
 /* IMPLEMENTING DIMENSIONS:  ==============================================
 */
 bR = bonds_radius; /* bonds including for ligands) */
 aR = AtomsScaledPercent_corrected; /* atoms  including for ligands) */
-sR = (bonds_radius * 0.8); /* struts slighter thinner */ 
-ssR = (bonds_radius * 0.9); /* SSbonds slighter thinner */
-hR = (bonds_radius * 0.8); /* Hbonds  slighter thinner */
+sR = (bonds_radius * 0.8); /* struts slighter thiner */ 
+ssR = (bonds_radius * 0.9); /* SSbonds slighter thiner */
+hR = (bonds_radius * 0.8); /* Hbonds  slighter thiner */
 bbR = (bR * 1.5); /* backbone thicker the a bond */
 tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bond */ // this is the width of the element. Thicknes is half, meaning bR
+
+// End of the part from Dr. Angel Herráez and adapted by me
+
+
 /* RENDERING:  ==============================================
 */
 
 if (opt == "ballandstick");
-    rSet();
+rSet();
     calculate hbonds // this needs to be decided
     color hbonds @cHb;
     calculate struts // this needs to be decided, related to Angels script. 
@@ -202,13 +207,12 @@ if (opt == "ballandstick");
     hbonds @hR;
     struts @sR;
     ssBonds @ssR;
-    spacefill @{aR}%;
+spacefill @{aR}%;
 endif;
 
-// For this part of the script the original author is Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/).
-
+// For this part of the script the original author was Dr. Angel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain (https://biomodel.uah.es/). I have re-arranged it and introduce diffrent coloring for protein, dna and rna surfaces.
 if (opt=='backbone');
-    // Protein backbone
+// Protein backbone
     select ~prot;
     rSet();
     hbonds off;
@@ -216,6 +220,19 @@ if (opt=='backbone');
     backbone @{-bbR};
     set ssbonds backbone;
     ssBonds @ssR;
+    select all;
+// DNA backbone
+    select ~nuc;
+    rSet();
+    isosurface delete;
+    backbone @{-bbR*1.1};
+    calculate hbonds;
+    hbonds @hR;
+    color hbonds @cHb;
+    select ~dna;
+    wireframe @{bR};
+    select ~rna;
+    wireframe @{bR};
     select all;
 endif;
 
@@ -228,6 +245,19 @@ if (opt=='trace');
     trace @{-tR};
     set ssbonds backbone;
     ssBonds @ssR;
+    select all;
+// DNA trace
+    select ~nuc;
+    rSet();
+    isosurface delete;
+    trace @{-tR*1.1};
+    calculate hbonds;
+    hbonds @hR;
+    color hbonds @cHb;
+    select ~dna;
+    wireframe @{bR};
+    select ~rna;
+    wireframe @{bR};
     select all;
 endif;
 
@@ -242,6 +272,19 @@ if (opt=='cartoon');
   set ssbonds backbone;
   ssBonds @ssR;
   select all;
+// DNA ribbon
+  select ~nuc;
+  rSet();
+  isosurface delete;
+  ribbons @{-tR*1.1};
+  calculate hbonds;
+  hbonds @hR;
+  color hbonds @cHb;
+  select ~dna;
+  wireframe @{bR};
+  select ~rna;
+  wireframe @{bR};
+  select all;
 endif;
 
 if (opt=='ribbon');
@@ -254,53 +297,18 @@ if (opt=='ribbon');
   set ssbonds backbone;
   ssBonds @ssR;
   select all;
-endif;
-
-if (opt=='backbone');
-// DNA backbone
+// DNA ribbon
   select ~nuc;
   rSet();
   isosurface delete;
-  backbone @{-bbR};
+  ribbons @{-tR*1.1};
   calculate hbonds;
   hbonds @hR;
   color hbonds @cHb;
   select ~dna;
-  wireframe @{bR*1.2};
+  wireframe @{bR};
   select ~rna;
-  wireframe @{bR*1.0};
-  select all;
-endif;
-
-if (opt=='trace');
-// DNA trace
-  select ~nuc;
-  rSet();
-  isosurface delete;
-  trace @{-tR};
-  calculate hbonds;
-  hbonds @hR;
-  color hbonds @cHb;
-  select ~dna;
-  wireframe @{bR*1.2};
-  select ~rna;
-  wireframe @{bR*1.0};
-  select all;
-  endif;
-
-if (opt=='ribbon');
-  // DNA ribbon
-  select ~nuc;
-  rSet();
-  isosurface delete;
-  ribbons @{-tR};
-  calculate hbonds;
-  hbonds @hR;
-  color hbonds @cHb;
-  select ~dna;
-  wireframe @{bR*1.2};
-  select ~rna;
-  wireframe @{bR*1.0};
+  wireframe @{bR};
   select all;
 endif;
 
@@ -316,23 +324,22 @@ if (opt=='blocks');// dont think we need this one
   set cartoonBlockHeight @{tR*0.8};
   cartoon @{-tR};
   select all;
-endif;
-
-if (opt=='spacefill'); // dont think we need this one
-// whole model
-  select all;
+// Protein ribbon //need to decide if that is ok
+  select ~prot;
   rSet();
+  hbonds off;
   isosurface delete;
-  spacefill 100%// from AH @{-aR}; // this needs some thought, might not work as expected
-  set ssbonds sidechain;
+  ribbons @{-tR};
+  set ssbonds backbone;
   ssBonds @ssR;
+  select all;
 endif;
 
 // Ligands
   select (not ~poly);
   rSet();
   wireframe @bR;
-  spacefill @{aR}%;;
+  spacefill @{aR}%;
 
 // Struts
   select all;
@@ -450,6 +457,11 @@ function NucleicProteinStruts() {
   }
 } //end function
 
+
+var LigStruts = true // MM - function to specify if struts should conect ligands with protein. Possible values: true or false. Will be selectable in the web interface, as it is in AH version
+var NucProtStruts = 1 // MM - function to specify if struts should conect nucleic acids with protein. Possible values: 0 or 1. Will be selectable in the web interface, as it is in AH version
+
+
 if (LigStruts) { ligandProteinStruts(); }
 if (NucProtStruts==1) { NucleicProteinStruts(); }
 
@@ -463,12 +475,18 @@ if (opt.find('surface'));
 echo "  computing surface...  ";
 refresh;
 if (opt=='sesurface') {
-  isosurface resolution 3 select(~poly) only molecular; // resolution x is to increase the quality of the exported surface. Default is resolution 1 which is fast, but of low quality. 2 is so and so, 3 looks good enough and computation time for 2HHB is acceptable, for 4 and more  computation time increases. Might require some tweaking, maybe somehow related to the prin scale - low print scare should require lower resolution. 
+  isosurface A resolution 3 select(~prot) only molecular; // resolution x is to increase the quality of the exported surface. Default is resolution 1 which is fast, but of low quality. 2 is so and so, 3 looks good enough and computation time for 2HHB is acceptable, for 4 and more  computation time increases. Might require some tweaking, maybe somehow related to the prin scale - low print scare should require lower resolution. 
+  isosurface B resolution 3 select(~dna) only molecular;
+  isosurface C resolution 3 select(~rna) only molecular;  
 }
 if (opt=='sasurface') {
-  isosurface resolution 3 select(~poly) only sasurface; 
+  isosurface A resolution 3 select(~prot) only sasurface; 
+  isosurface B resolution 3 select(~dna) only sasurface;
+  isosurface C resolution 3 select(~rna) only sasurface;  
 }
-color isosurface @cSurf;
+color $A @cSurf;
+color $B @cSurfDNA;
+color $C @cSurfRNA;
 center all;
 select ~poly and not connected(not ~poly);
 hBonds 0;
@@ -477,42 +495,66 @@ struts 0;
 select all;
 endif;
 
+if (opt=='spacefill'); // dont think we need this one //moved down here as it will not work otherwise. The ligand part interferes for small molecules
+// whole model
+  select all;
+  rSet();
+  isosurface delete;
+  spacefill 100%// from AH @{-aR}; // this needs some thought, might not work as expected
+  //set ssbonds sidechain; //dont think these are needed, will not be visible
+  //ssBonds @ssR; //dont think these are needed, will not be visible
+endif;
+
 select all;
 echo;
 refresh;
 
+if (colorPrinter=='no');
 print "----------------------------------------------";
-print "--- Start of 3D Printing RECOMMENDATIONS ----";
+print "--- Start of 3D Printing RECOMMENDATIONS for single color/material ----";
 print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer. Using SLA printers is possible, but not yet tested.";
+//Calculate min and max printing scale in % to be displayed
 var MaxPrintScale = MaxPrintScaleFactor*100;
 var MinPrintScale = MinPrintScaleFactor*100;
 var PrintScale = PrintScaleFactor*100;
-var MaxPrintScale_round = point(MaxPrintScale + 0.5);    // rounding up
-var MinPrintScale_round = point(MinPrintScale + 0.5);    // rounding up
-var PrintScale_round = point(PrintScale + 0.5);    // rounding up
+// rounding up scale values for display
+var MaxPrintScale_round = point(MaxPrintScale)%0;    // rounding up
+var MinPrintScale_round = point(MinPrintScale)%0;;    // rounding up
+var PrintScale_round = point(PrintScale)%0;;    // rounding up
+
+// Output approximate real-world print dimensions in mm at MaxPrintScale 
+// Compute raw values first
 var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
 var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
 var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
-var max_length_mm = point(max_length_raw + 0.5);  // rounding up
-var max_height_mm = point(max_height_raw + 0.5);  // rounding up
-var max_depth_mm = point(max_depth_raw + 0.5);    // rounding up
+var max_length_mm = point(max_length_raw)%0;;  // rounding up
+var max_height_mm = point(max_height_raw)%0;;  // rounding up
+var max_depth_mm = point(max_depth_raw)%0;    // rounding up
 print "-->Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+
+// Output approximate real-world print dimensions in mm at MinPrintScale 
+// Compute raw values first
 var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
 var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
 var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
-var min_length_mm = point(min_length_raw + 0.5);  // rounding up
-var min_height_mm = point(min_height_raw + 0.5);  // rounding up
-var min_depth_mm = point(min_depth_raw + 0.5);    // rounding up
+// Round values to the nearest integer
+var min_length_mm = point(min_length_raw)%0;  // rounding up
+var min_height_mm = point(min_height_raw)%0;;  // rounding up
+var min_depth_mm = point(min_depth_raw)%0;    // rounding up
 print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+// text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
+
+// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section.
+
 if (MaxPrintScaleFactor > 1) {
     print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
     print "Your molecule is rather small. All styles are suitable and can be printed.";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorTrace) {
-    print "Your molecule is medium-sized. All styles except Ball and Stick can be printed.";
+    print "Your molecule is medium sized. All styles except Ball and Stick can be printed.";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorRibbon) {
-    print "Your molecule is medium-sized. All styles except Ball and Stick and Trace can be printed.";
+    print "Your molecule is medium sized. All styles except Ball and Stick and Trace can be printed.";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorBackbone) {
     print "Your molecule is rather large. Only Backbone and Surface style can be printed.";
 } else if (MaxPrintScaleFactor >= MinThresholdScaleFactorSurface) {
@@ -526,20 +568,101 @@ print "-- the minimum allowed scale for the Trace style is " + MinThresholdScale
 print "--- the minimum allowed scale for the Ribbon style is " + MinThresholdScaleFactorRibbon_display + " %;"
 print "---- the minimum allowed scale for the Backbone style is " + MinThresholdScaleFactorBackbone_display + " %;"
 print "----- The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
-print "--- End of 3D Printing RECOMMENDATIONS ----";
+print "--- End of 3D Printing RECOMMENDATIONS for single color/material ----";
 print "--------------------------------------------";
+
+// Output approximate real-world print dimensions in mm at curent scale/user 
+// Compute raw values first
 var user_length_raw = length * PrintScaleFactor * JMolStlScale;
 var user_height_raw = height * PrintScaleFactor * JMolStlScale;
 var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
-var user_length_mm = point(user_length_raw + 0.5);  // rounding up
-var user_height_mm = point(user_height_raw + 0.5);  // rounding up
-var user_depth_mm = point(user_depth_raw + 0.5);    // rounding up
-print "Printed at the current scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
+// Round values to the nearest integer
+var user_length_mm = point(user_length_raw)%0;;  // rounding up
+var user_height_mm = point(user_height_raw)%0;;  // rounding up
+var user_depth_mm = point(user_depth_raw)%0;;    // rounding up
+print "Printed at the curent scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
 print "--------------------------------------------";
+endif;
+
+if (colorPrinter=='yes');
+print "----------------------------------------------";
+print "--- Start of 3D Printing RECOMMENDATIONS for multimaterial/multicolor ----";
+print "Rendering and printing recommendations are provided for a medium size (ie. Ender 3; Prusa MK3S+) FDM 3D printer with multimaterial/multicolor support.";
+//Calculate min and max printing scale in % to be displayed
+var MaxPrintScale = MaxPrintScaleFactor*100*JMolStlScale;
+var MinPrintScale = MinPrintScaleFactor*100*JMolStlScale;
+var PrintScale = PrintScaleFactor*100*JMolStlScale;
+// rounding up scale values for display
+var MaxPrintScale_round = point(MaxPrintScale)%0;    // rounding up
+var MinPrintScale_round = point(MinPrintScale)%0;;    // rounding up
+var PrintScale_round = point(PrintScale)%0;;    // rounding up
+
+// Output approximate real-world print dimensions in mm at MaxPrintScale 
+// Compute raw values first
+var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var max_length_mm = point(max_length_raw)%0;;  // rounding up
+var max_height_mm = point(max_height_raw)%0;;  // rounding up
+var max_depth_mm = point(max_depth_raw)%0;    // rounding up
+print "-->Printed at a maximum allowed printing scale of " + MaxPrintScale_round + " % , your model will be approx " + max_length_mm + " mm x " + max_height_mm + " mm x " + max_depth_mm + " mm.";
+
+// Output approximate real-world print dimensions in mm at MinPrintScale 
+// Compute raw values first
+var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var min_length_mm = point(min_length_raw)%0;  // rounding up
+var min_height_mm = point(min_height_raw)%0;;  // rounding up
+var min_depth_mm = point(min_depth_raw)%0;    // rounding up
+print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
+// text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
+
+// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section.
+
+if (MaxPrintScaleFactor > 1) {
+    print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 1000%.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
+    print "Your molecule is rather small. All styles are suitable and can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorTrace) {
+    print "Your molecule is medium sized. All styles except Ball and Stick can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorRibbon) {
+    print "Your molecule is medium sized. All styles except Ball and Stick and Trace can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBackbone) {
+    print "Your molecule is rather large. Only Backbone and Surface style can be printed.";
+} else if (MaxPrintScaleFactor >= MinThresholdScaleFactorSurface) {
+    print "Your molecule is large. Only Surface style can be printed.";
+} else {
+    print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
+}
+print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
+print "- the minimum allowed scale for the Ball and stick style is " + point(minThresholdScaleFactorBallStick_display*JMolStlScale)%0 + " %;"; // point(min_length_raw)%0
+print "-- the minimum allowed scale for the Trace style is " + point(MinThresholdScaleFactorTrace_display*JMolStlScale)%0 + " %;";
+print "--- the minimum allowed scale for the Ribbon style is " + point(MinThresholdScaleFactorRibbon_display*JMolStlScale)%0 + " %;"
+print "---- the minimum allowed scale for the Backbone style is " + point(MinThresholdScaleFactorBackbone_display*JMolStlScale)%0 + " %;"
+print "----- The surface rendering can be as low as " + point(MinPrintScale_round)%0 + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
+print "--- End of 3D Printing RECOMMENDATIONS for multimaterial/multicolor----";
+print "--------------------------------------------";
+
+// Output approximate real-world print dimensions in mm at curent scale/user 
+// Compute raw values first
+var user_length_raw = length * PrintScaleFactor * JMolStlScale;
+var user_height_raw = height * PrintScaleFactor * JMolStlScale;
+var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
+// Round values to the nearest integer
+var user_length_mm = point(user_length_raw)%0;;  // rounding up
+var user_height_mm = point(user_height_raw)%0;;  // rounding up
+var user_depth_mm = point(user_depth_raw)%0;;    // rounding up
+print "Printed at the curent scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
+print "--------------------------------------------";
+endif;
+
 if (colorPrinter=='yes');
   write test_color.obj;
 endif;
 if (colorPrinter=='no');
   write test.stl;
 endif;
-print "Time for running the script version alfa.public is: " + now(t) + "ms";
+print "Time for running the script version alfa1.public: " + now(t) + "ms";
