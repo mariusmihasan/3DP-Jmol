@@ -4,7 +4,7 @@ Have you ever wanted/needed a model of a macromolecule from PDB but were unable 
 
 The most user-intensive step in generating 3D printable models of macromolecular structures is by far the conversion of the structural data into the stl file. This step is key not only for the printability of the model but also for its success as an educational or demonstration material. Important key information related to the target molecule such as size, atoms, and bond dimensions must be correlated with the final dimensions of the physical model and printing hardware. Hence we started developing 3DP-Jmol – a script that automatically generates 3D printable molecular models from structural data based on very minimal user input.  
 
-**3DP-Jmol** is currently under development and new features are added constantly. Although we expect things to run smoothly, your experience may vary.
+**3DP-Jmol** is currently under development and new features are added constantly. Although we expect things to run smoothly, your experience may vary. Version alpha1.public introduces an experimental feature - generating obj files as output compatible with multicolor printing. Automatic color selection is only possible in a few slicers, including OrcaSlicer And Bambu Studio.
 
 # **Brief instructions**
 1. Download and unzip [Jmol](https://jmol.sourceforge.net/), an open-source Java viewer for chemical structures in 3D;
@@ -15,7 +15,7 @@ The most user-intensive step in generating 3D printable models of macromolecular
 6. Copy the entire content of the text file edited in step 4 and paste it in the Console window using the Ctrl-V  keyboard combination (or Cmd+V for Mac);
 7. Wait patiently until JMol generates your printable file. This should be signaled by the appearance of a text similar to: <br>
 `OK 20527284 Stl /Users/mariusmihasan/test.stl`<br>
-`Time for running the script version alfa.public is: 4956ms`
+`Time for running the script version alfa1.public is: 4956ms`
 9. Check the instructions in the Console and, if required, based on the indications and your choice, come back to step 4 and repeat. The path for the `test.stl`  file generated is indicated before the last line in the Console. Print it and enjoy!
 
 # **Contributors**: 
