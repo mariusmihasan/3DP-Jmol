@@ -14,7 +14,7 @@ load =4BNA //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of 
 
 var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
 
-var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sassurface) needs to be false. 
+var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
 var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. 
 
