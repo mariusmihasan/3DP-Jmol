@@ -16,7 +16,7 @@ var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; se
 
 var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
-var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. 
+var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. //Looks like it does not properly work. Need to look into this.
 
 var PrintScaleFactorUser = 0.34; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
