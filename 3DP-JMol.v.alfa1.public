@@ -10,7 +10,7 @@ if (hydrogenAtoms=='off'); // no edits required
   SET pdbAddHydrogens FALSE; // no edits required
 endif; // no edits required
 
-load =4BNA //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
+load =4bna //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
 var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
 
@@ -18,7 +18,7 @@ var LigStruts = true  // If ligands are to be connected with the macromolecule. 
 
 var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. //Looks like it does not properly work. Need to look into this.
 
-var PrintScaleFactorUser = 0.34; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
+var PrintScaleFactorUser = 0; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
 var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 ///This is where the required user input ends and the process starts. No edits below this line should be required. 
@@ -180,6 +180,8 @@ var MinThresholdScaleFactorSpacefill = 0.025; // needs math, same as surface bel
 var MinThresholdScaleFactorSurface = 0.025; //from the paper, needs math. I will use it for both CPK (spacefill) and both surfaces (ses and sas) 
 var MinThresholdScaleFactorSurface_display = point(MinThresholdScaleFactorSurface * 100)%0;
 var MinPrintScaleFactor = MinThresholdScaleFactorSurface;
+var MinThresholdScaleFactorBallStick_soluble = 0.4; //Albeit some proteins could be theoretically printed as BallandStick, the support is so abundabd than can not be practically removed. These proteins could only be printed with soluble support (IDEX or multimaterial printers). Value manually added - not decided between 0.4 and 0.3, needs testing or math. Math could be related to the total number of atoms.
+var MinThresholdScaleFactorBallStick_soluble_display = point(MinThresholdScaleFactorBallStick_soluble * 100)%0;  
 
 /* IMPLEMENTING DIMENSIONS:  ==============================================
 */
@@ -544,8 +546,10 @@ print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % ,
 
 if (MaxPrintScaleFactor > 1) {
     print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
-} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick_soluble) {
     print "Your molecule is rather small. All styles are suitable and can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
+    print "Your molecule is rather small. All styles are suitable and can be printed, but soluble support is needed for the Ball and Stick";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorTrace) {
     print "Your molecule is medium sized. All styles except Ball and Stick can be printed.";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorRibbon) {
@@ -558,11 +562,12 @@ if (MaxPrintScaleFactor > 1) {
     print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
-print "- the minimum allowed scale for the Ball and stick style is " + minThresholdScaleFactorBallStick_display + " %;";
-print "-- the minimum allowed scale for the Trace style is " + MinThresholdScaleFactorTrace_display + " %;";
-print "--- the minimum allowed scale for the Ribbon style is " + MinThresholdScaleFactorRibbon_display + " %;"
-print "---- the minimum allowed scale for the Backbone style is " + MinThresholdScaleFactorBackbone_display + " %;"
-print "----- The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
+print "- the minimum allowed scale for the Ball and stick style for single material printers is " + MinThresholdScaleFactorBallStick_soluble_display + " %;";
+print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + minThresholdScaleFactorBallStick_display + " %;";
+print "--- the minimum allowed scale for the Trace style is " + MinThresholdScaleFactorTrace_display + " %;";
+print "---- the minimum allowed scale for the Ribbon style is " + MinThresholdScaleFactorRibbon_display + " %;"
+print "----- the minimum allowed scale for the Backbone style is " + MinThresholdScaleFactorBackbone_display + " %;"
+print "------ The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
 print "--- End of 3D Printing RECOMMENDATIONS for single color/material ----";
 print "--------------------------------------------";
 
@@ -618,9 +623,11 @@ print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % ,
 // Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section.
 
 if (MaxPrintScaleFactor > 1) {
-    print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 1000%.";
-} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
+    print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick_soluble) {
     print "Your molecule is rather small. All styles are suitable and can be printed.";
+} else if (MaxPrintScaleFactor > MinThresholdScaleFactorBallStick) {
+    print "Your molecule is rather small. All styles are suitable and can be printed, but soluble support is needed for the Ball and Stick";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorTrace) {
     print "Your molecule is medium sized. All styles except Ball and Stick can be printed.";
 } else if (MaxPrintScaleFactor > MinThresholdScaleFactorRibbon) {
@@ -633,15 +640,16 @@ if (MaxPrintScaleFactor > 1) {
     print "Your molecule is huge. Sorry, but we can not generate printable models for it.";
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
-print "- the minimum allowed scale for the Ball and stick style is " + point(minThresholdScaleFactorBallStick_display*JMolStlScale)%0 + " %;"; // point(min_length_raw)%0
-print "-- the minimum allowed scale for the Trace style is " + point(MinThresholdScaleFactorTrace_display*JMolStlScale)%0 + " %;";
-print "--- the minimum allowed scale for the Ribbon style is " + point(MinThresholdScaleFactorRibbon_display*JMolStlScale)%0 + " %;"
-print "---- the minimum allowed scale for the Backbone style is " + point(MinThresholdScaleFactorBackbone_display*JMolStlScale)%0 + " %;"
-print "----- The surface rendering can be as low as " + point(MinPrintScale_round)%0 + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
+print "- the minimum allowed scale for the Ball and stick style for single material printers is " + point(MinThresholdScaleFactorBallStick_soluble_display*JMolStlScale)%0 + " %;";
+print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + point(minThresholdScaleFactorBallStick_display*JMolStlScale)%0 + " %;";
+print "--- the minimum allowed scale for the Trace style is " + point(MinThresholdScaleFactorTrace_display*JMolStlScale)%0 + " %;";
+print "---- the minimum allowed scale for the Ribbon style is " + point(MinThresholdScaleFactorRibbon_display*JMolStlScale)%0 + " %;"
+print "----- the minimum allowed scale for the Backbone style is " + point(MinThresholdScaleFactorBackbone_display*JMolStlScale)%0 + " %;"
+print "------ The surface rendering can be as low as " + point(MinPrintScale_round)%0 + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
 print "--- End of 3D Printing RECOMMENDATIONS for multimaterial/multicolor----";
 print "--------------------------------------------";
 
-// Output approximate real-world print dimensions in mm at curent scale/user 
+// Output approximate real-world print dimensions in mm at current scale/user 
 // Compute raw values first
 var user_length_raw = length * PrintScaleFactor * JMolStlScale;
 var user_height_raw = height * PrintScaleFactor * JMolStlScale;
@@ -650,7 +658,7 @@ var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
 var user_length_mm = point(user_length_raw)%0;;  // rounding up
 var user_height_mm = point(user_height_raw)%0;;  // rounding up
 var user_depth_mm = point(user_depth_raw)%0;;    // rounding up
-print "Printed at the curent scale/user selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
+print "Printed at the current scale/user-selected scale of " + PrintScale_round + " % , your model will be approx " + user_length_mm + " mm x " + user_height_mm + " mm x " + user_depth_mm + " mm.";
 print "--------------------------------------------";
 endif;
 
