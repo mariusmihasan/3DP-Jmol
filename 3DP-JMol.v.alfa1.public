@@ -166,7 +166,6 @@ if (AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
 }
 var MinThresholdScaleFactorBallStick = MinPrintedObjDimen/((2*(AtomsScaledPercentMax / 100.0) * (minSpacefill/AtomScalingFactor))); 
 var MinThresholdScaleFactorBallStick_display = point(MinThresholdScaleFactorBallStick * 100)%0; // for display as feedback for user
-var MinThresholdScaleFactorBallStick_display = point(MinThresholdScaleFactorBallStick * 100)%0;
 var MinThresholdScaleFactorBackbone = (MinPrintedObjDimen * 1.5)/(1.4 * 2); 
 var MinThresholdScaleFactorBackbone_display = point(MinThresholdScaleFactorBackbone * 100)%0;
 var MinThresholdScaleFactorTrace = MinPrintedObjDimen / 1.3 ; 
