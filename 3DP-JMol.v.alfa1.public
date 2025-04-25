@@ -12,7 +12,7 @@ endif; // no edits required
 
 load =4bna //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; sesurface and sassurface. Not yet for cartoon.
+var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Not yet for cartoon.
 
 var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
