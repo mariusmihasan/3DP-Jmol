@@ -370,7 +370,14 @@ function ligandProteinStruts() {
     if (!found) {~LG.push({ "groupNames":m, "atoms":{@m} }) }
   }
   */
-
+  // add single nucleotides as ligands:
+  var ~nt = {(dna or rna) and polymerLength=0};
+  var ~ntList = ~nt.resno.all.pivot; // list of their group numbers and atom counts
+  var ~ntResNo = ~ntList.keys; // array of their group numbers
+  for (k = 1; k <= ~ntResNo.size; k++) {
+    var a = {resNo = @~ntResNo[k]}.group;
+    ~LG.push({ "groupNames": a, "atoms": {@{a + ~ntResNo[k]}} });
+  }
   for (i=1; i<=~LG.size; i++) {
     if (~LG[i].atoms.size == 1) {
         /* for ONE-ATOM LIGANDS (ions):
