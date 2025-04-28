@@ -128,9 +128,15 @@ if (depth > maxDim) {
     maxLabel = "Depth";
 }
 boundbox off;
-var MinBondLength = {*}.bonds.length.min
-var minSpacefill = {*}.spacefill.min
-var maxSpacefill = {*}.spacefill.max
+
+var MinBondLength = 1.0; // default, this is N-H or O-H length
+if ({*}.bonds.size != 0) { MinBondLength = {*}.bonds.length.min; }
+
+var minSpacefill = {*}.spacefill.min;
+if (minSpacefill == 0) { minSpacefill = 0.25; } // H at 23%
+
+var maxSpacefill = {*}.spacefill.max;
+if (maxSpacefill == 0) { maxSpacefill = 1.7; } // carbon at 100%
 
 print "-- Setting up 3D printing environment ";
 var JMolStlScale = 10.0;
