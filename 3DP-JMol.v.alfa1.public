@@ -10,17 +10,23 @@ if (hydrogenAtoms=='off'); // no edits required
   SET pdbAddHydrogens FALSE; // no edits required
 endif; // no edits required
 
-load =4bna //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
-
-var opt = "ballandstick" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Not yet for cartoon.
-
-var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
-
-var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1. //Looks like it does not properly work. Need to look into this.
-
 var PrintScaleFactorUser = 0; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
 var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
+
+load =2HHB //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
+
+var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Not yet for cartoon.
+
+var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
+
+var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1.
+
+// Config options for adding struts holding ligands:
+var nMaxOneAtomLigandStruts = 1; // One-atom ligand may be linked (in file) to more than one residue. 1 restricts the number of struts, in case of backbone/trace/etc. rendering. Zero disables restriction.
+var nMaxMultiAtomLigandStruts = 3;
+var nMaxMultiAtomLigandAtoms = 6; /* For multi-atom ligand with no links declared in file. Number of struts will not exceed (first Max) [i.e., 6 struts at most for any size of ligand], but the number will be reduced to 1 if the ligand has less than (second Max) atoms [i.e., one strut for ligand with 5 atoms]. */
+
 ///This is where the required user input ends and the process starts. No edits below this line should be required. 
 //=================================================================================================================
 
@@ -90,37 +96,22 @@ define ~node alpha or (*.P and nucleic);
 define ~nodeN ~node and nucleic; 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
 boundbox {*}; // update to based on atoms present: no need to display it
-var ~center = getProperty("boundBoxInfo", "center");
-var ~corner0 = getProperty("boundBoxInfo", "corner0");
-var ~corner1 = getProperty("boundBoxInfo", "corner1");
 var ~vector = getProperty("boundBoxInfo", "vector");
-if (~center == null || ~corner0 == null || ~corner1 == null || ~vector == null) {
+if (~vector == null) {
   print "ERROR: Bounding box data not retrieved.";
   exit;
 }
 var ~length = 2 * ~vector.x;  // X-axis (width)
 var ~height = 2 * ~vector.y;  // Y-axis (height)
 var ~depth  = 2 * ~vector.z;  // Z-axis (depth)
-var length_check = ~corner1.x - ~corner0.x;
-var height_check = ~corner1.y - ~corner0.y;
-var depth_check  = ~corner1.z - ~corner0.z;
 
-// Ensure consistency
-if (abs(~length - length_check) > 0.1 || abs(~height - height_check) > 0.1 || abs(~depth - depth_check) > 0.1) {
-  ~length = length_check;
-  ~height = height_check;
-  ~depth = depth_check;
-}
 var volume = ~length * ~height * depth;
 var maxDim = ~length;
-var maxLabel = "Length";
 if (~height > maxDim) {
   maxDim = ~height;
-  maxLabel = "Height";
 }
 if (~depth > maxDim) {
   maxDim = ~depth;
-  maxLabel = "Depth";
 }
 
 var MinBondLength = 1.0; // default, this is N-H or O-H length
@@ -349,92 +340,107 @@ endif;
   calculate struts;
 select all;
 
-// Ligand<->Protein/Nucleic struts
+// Ligand<->Protein/Nucleic struts    UPDATED
 function ligandProteinStruts() {
   var ~L = {(not ~poly)};
-  if (~L.length==0) { return; /* no ligands */ }
+  if (~L.length==0) { print "No ligands were found, no struts generated."; return; }
 
-  var ~LG = getProperty('ligandInfo.ligands');
+  var D = [];
+  var lig; var ligA; var protA; var nLigandStruts; var strutL; var strutP; var P;
+  var LG = getProperty('ligandInfo.ligands');
 
-  /*
-  // add other HET ligands not listed:  produces too many weird struts
-  HN = getProperty('fileInfo.hetnam').lines;
-  for (var i=1; i<=HN.size; i++) {
-    var m = HN[i];
-    m = m[12][14].trim(); //column positions of group name
-    var found = false;
-    for (var j=1; j<=~LG.size; j++) {
-      if (~LG[j].groupNames == m) { found = true; }
-    }
-    x = {m}
-    if (!found) {~LG.push({ "groupNames":m, "atoms":{@m} }) }
-  }
-  */
   // add single nucleotides as ligands:
   var ~nt = {(dna or rna) and polymerLength=0};
   var ~ntList = ~nt.resno.all.pivot; // list of their group numbers and atom counts
   var ~ntResNo = ~ntList.keys; // array of their group numbers
-  for (k = 1; k <= ~ntResNo.size; k++) {
+  for (var k = 1; k <= ~ntResNo.size; k++) {
     var a = {resNo = @~ntResNo[k]}.group;
-    ~LG.push({ "groupNames": a, "atoms": {@{a + ~ntResNo[k]}} });
+    LG.push({ "groupNames": a, "atoms": {@{a + ~ntResNo[k]}} });
   }
-  for (i=1; i<=~LG.size; i++) {
-    if (~LG[i].atoms.size == 1) {
+
+  for (var i=1; i<=LG.size; i++) {
+    if (LG[i].atoms.size == 1) {
         /* for ONE-ATOM LIGANDS (ions):
            links ion to the closest alphaCarbon or P (strut to trace or backbone)
         */
-      var ~ligA = ~LG[i].atoms;
-      var ~protA = {~poly} and connected({~ligA}) and within(chain, {~ligA});
-      var D = [];
-      for (var j in @~protA) {
-        D.push( [j.distance( {~ligA} ), {(within(group, {j}) and ~node)}.atomIndex ] );
+      ligA = LG[i].atoms;
+      // protA = {~poly} and connected({ligA}) and within(chain, {ligA});
+      protA = {~poly} and connected({ligA});
+      if ( {protA}.size > 0 ) { // ONE-ATOM, LINKED 
+          // There may be links to more than one residues & node atoms -- What to do?
+        nLigandStruts = nMaxOneAtomLigandStruts;
+        if (opt=='backbone' || opt=='trace' || opt=='ribbon' || opt=='blocks') {
+          P = {within(group, {protA}) and ~node};
+          if (nLigandStruts == 1) { P = P[1]; }
+          connect (ligA) (P) strut;
+          // connects to the node atom of the residue(s) linked to ligand
+          print "->> " + P.size + " struts for one-atom linked ligand #" + i + ", " + LG[i].groupNames;
+        } else {
+          define temp selected;
+          select ( {ligA} and connected(protA), {protA} );
+          wireframe @bR;
+          select temp;
+          print "->> Bond for one-atom linked ligand #" + i + ", " + LG[i].groupNames;
+        }
+      } else { // ONE-ATOM, NON-LINKED 
+        protA = {within(chain, {ligA}) and ~node}; // redefines it
+        if ({protA}.size == 0) { // ligand chain is different from any prot/nuc or ligand
+          protA = {~poly} and within(6.0, ligA); // redefines it
+        }
+        D = [];
+        for (var j in @protA) {
+          D.push( [j.distance( {ligA} ), {(within(group, {j}) and ~node)}.atomIndex ] );
+        }
+        D.sort(1);
+        define ~pS (atomIndex=@{D[1].[2]});
+        connect ( {ligA} ) ( within(group, ~pS) and ~node ) strut;
+        print "->> Strut for one-atom non-linked ligand #" + i + ", " + LG[i].groupNames;
       }
-      D.sort(1);
-      define ~pA (atomIndex=@{D[1].[2]});
-      connect ( {~ligA} ) ( within(group, ~pA) and ~node ) strut;
-      print "->> Struts for one-atom ligand #" + i + ", " + ~LG[i].groupNames;
-    } else { //>1
+      //print "->> Strut for one-atom ligand #" + i + ", " + LG[i].groupNames;
+    } else { // LIGAND WITH >1 ATOMS
         /* for LINKED LIGANDS:
-            links ~ligA to the alphaCarbon or P of that residue (strut to trace or backbone)
+            links ligA to the alphaCarbon or P of that residue (strut to trace or backbone)
         */
-      var ~lig = ~LG[i].atoms;
-      var ~protA = {~poly} and connected({~lig}); // linked atoms in protein
-      if ( ~protA.size>0 ) {
-        var ~ligA = {~lig} and connected({~protA}); // linked atom in ligand
-        connect ( {~ligA} ) ( within(group, {~protA}) and ~node ) strut;
-        print "->> Struts for linked atom in ligand #" + i + ", " + ~LG[i].groupNames;
+      lig = LG[i].atoms;
+      protA = {~poly} and connected({lig}); // linked atoms in protein
+      if ( protA.size>0 ) {
+        ligA = {lig} and connected({protA}); // linked atom(s) in ligand
+        connect ( {ligA} ) ( within(group, {protA}) and ~node ) strut;
+        print "->> " + ligA.size + " struts for linked atom(s) in ligand #" + i + ", " + LG[i].groupNames;
       } else { // NON-LINKED LIGAND
-        var ~lig = ~LG[i].atoms;
-        var nLigandStruts = 3;
-        var D = []; // distances between ligand atoms and protein alpha or nucleic P atoms
-        var P = {(~node and within(6.0,~lig))};
-        for (var j=1; j<={~lig}.size; j++) {
+        lig = LG[i].atoms;
+        nLigandStruts = nMaxMultiAtomLigandStruts;
+        if (lig.size < nMaxMultiAtomLigandAtoms) { nLigandStruts = 1; }
+        D = []; // distances between ligand atoms and protein alpha or nucleic P atoms
+        P = {(~node and within(6.0,lig))};
+        for (var j=1; j<={lig}.size; j++) {
           for (var k=1; k<=P.size; k++) {
-            D.push( [{~lig}[j].distance(P[k]), {~lig}[j].atomIndex, P[k].atomIndex] );
+            D.push( [ {lig}[j].distance(P[k]), {lig}[j].atomIndex, P[k].atomIndex ] );
           }
         }
         D.sort(1); // lowest distances first
         
         /* to pick "nLigandStruts" closest ligand-protein atom pairs, avoiding 2 struts on the same atom
         */
-        var strutL = []; 
-        var strutP = [];
+        strutL = []; 
+        strutP = [];
         for (var j=1; j<D.size; j++) {
-          var ~ligA = D[j].[2]; //atomIndex numbers
-          var ~protA = D[j].[3];
-          if ( !strutL.find(~ligA) && !strutP.find(~protA) ) { 
-            strutL.push(~ligA); strutP.push(~protA);
+          ligA = D[j].[2]; //atomIndex numbers
+          protA = D[j].[3];
+          if ( !strutL.find(ligA) && !strutP.find(protA) ) { 
+            strutL.push(ligA); strutP.push(protA);
           }
           if (strutL.length==nLigandStruts) { break; }
         }
         for (var j=1; j<=nLigandStruts; j++) { /* add struts from ligand to protein */
           connect ({atomIndex=@{strutL[j]}}) ({atomIndex=@{strutP[j]}}) strut;
         }
-        print "->> Struts for non-linked ligand #" + i + ", " + ~LG[i].groupNames;
+        print "->> " + strutL.length + " struts for non-linked ligand #" + i + ", " + LG[i].groupNames;
       } //end not linked
     } //end >1
   } //end for i
   select all;
+  print "->> Type 'checkStruts' to verify struts added for ligand support.";
 } //end function
 
 // struts between Protein and Nucleic:
