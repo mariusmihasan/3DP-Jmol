@@ -89,45 +89,39 @@ define ~poly ~prot or ~nuc;
 define ~node alpha or (*.P and nucleic); 
 define ~nodeN ~node and nucleic; 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
-boundbox on;
-refresh;
-var centerStr = getProperty("boundBoxInfo", "center");
-var corner0Str = getProperty("boundBoxInfo", "corner0");
-var corner1Str = getProperty("boundBoxInfo", "corner1");
-var vectorStr = getProperty("boundBoxInfo", "vector");
-var center = [ centerStr.x, centerStr.y, centerStr.z ];
-var corner0 = [ corner0Str.x, corner0Str.y, corner0Str.z ];
-var corner1 = [ corner1Str.x, corner1Str.y, corner1Str.z ];
-var vector = [ vectorStr.x, vectorStr.y, vectorStr.z ];
-if (center == null || corner0 == null || corner1 == null || vector == null) {
+boundbox {*}; // update to based on atoms present: no need to display it
+var ~center = getProperty("boundBoxInfo", "center");
+var ~corner0 = getProperty("boundBoxInfo", "corner0");
+var ~corner1 = getProperty("boundBoxInfo", "corner1");
+var ~vector = getProperty("boundBoxInfo", "vector");
+if (~center == null || ~corner0 == null || ~corner1 == null || ~vector == null) {
   print "ERROR: Bounding box data not retrieved.";
   exit;
 }
-var length = 2 * vector[0];  // X-axis (width)
-var height = 2 * vector[1];  // Y-axis (height)
-var depth = 2 * vector[2];   // Z-axis (depth)
-var length_check = corner1[0] - corner0[0];
-var height_check = corner1[1] - corner0[1];
-var depth_check = corner1[2] - corner0[2];
+var ~length = 2 * ~vector.x;  // X-axis (width)
+var ~height = 2 * ~vector.y;  // Y-axis (height)
+var ~depth  = 2 * ~vector.z;  // Z-axis (depth)
+var length_check = ~corner1.x - ~corner0.x;
+var height_check = ~corner1.y - ~corner0.y;
+var depth_check  = ~corner1.z - ~corner0.z;
 
 // Ensure consistency
-if (abs(length - length_check) > 0.1 || abs(height - height_check) > 0.1 || abs(depth - depth_check) > 0.1) {
-    length = length_check;
-    height = height_check;
-    depth = depth_check;
+if (abs(~length - length_check) > 0.1 || abs(~height - height_check) > 0.1 || abs(~depth - depth_check) > 0.1) {
+  ~length = length_check;
+  ~height = height_check;
+  ~depth = depth_check;
 }
-var volume = length * height * depth;
-var maxDim = length;
+var volume = ~length * ~height * depth;
+var maxDim = ~length;
 var maxLabel = "Length";
-if (height > maxDim) {
-    maxDim = height;
-    maxLabel = "Height";
+if (~height > maxDim) {
+  maxDim = ~height;
+  maxLabel = "Height";
 }
-if (depth > maxDim) {
-    maxDim = depth;
-    maxLabel = "Depth";
+if (~depth > maxDim) {
+  maxDim = ~depth;
+  maxLabel = "Depth";
 }
-boundbox off;
 
 var MinBondLength = 1.0; // default, this is N-H or O-H length
 if ({*}.bonds.size != 0) { MinBondLength = {*}.bonds.length.min; }
@@ -534,9 +528,9 @@ var PrintScale_round = point(PrintScale)%0;;    // rounding up
 
 // Output approximate real-world print dimensions in mm at MaxPrintScale 
 // Compute raw values first
-var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
-var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
-var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+var max_length_raw = ~length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = ~height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = ~depth * MaxPrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
 var max_length_mm = point(max_length_raw)%0;;  // rounding up
 var max_height_mm = point(max_height_raw)%0;;  // rounding up
@@ -545,9 +539,9 @@ print "-->Printed at a maximum allowed printing scale of " + MaxPrintScale_round
 
 // Output approximate real-world print dimensions in mm at MinPrintScale 
 // Compute raw values first
-var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
-var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
-var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+var min_length_raw = ~length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = ~height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = ~depth * MinPrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
 var min_length_mm = point(min_length_raw)%0;  // rounding up
 var min_height_mm = point(min_height_raw)%0;;  // rounding up
@@ -586,9 +580,9 @@ print "--------------------------------------------";
 
 // Output approximate real-world print dimensions in mm at curent scale/user 
 // Compute raw values first
-var user_length_raw = length * PrintScaleFactor * JMolStlScale;
-var user_height_raw = height * PrintScaleFactor * JMolStlScale;
-var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
+var user_length_raw = ~length * PrintScaleFactor * JMolStlScale;
+var user_height_raw = ~height * PrintScaleFactor * JMolStlScale;
+var user_depth_raw = ~depth * PrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
 var user_length_mm = point(user_length_raw)%0;;  // rounding up
 var user_height_mm = point(user_height_raw)%0;;  // rounding up
@@ -612,9 +606,9 @@ var PrintScale_round = point(PrintScale)%0;;    // rounding up
 
 // Output approximate real-world print dimensions in mm at MaxPrintScale 
 // Compute raw values first
-var max_length_raw = length * MaxPrintScaleFactor * JMolStlScale;
-var max_height_raw = height * MaxPrintScaleFactor * JMolStlScale;
-var max_depth_raw = depth * MaxPrintScaleFactor * JMolStlScale;
+var max_length_raw = ~length * MaxPrintScaleFactor * JMolStlScale;
+var max_height_raw = ~height * MaxPrintScaleFactor * JMolStlScale;
+var max_depth_raw = ~depth * MaxPrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
 var max_length_mm = point(max_length_raw)%0;;  // rounding up
 var max_height_mm = point(max_height_raw)%0;;  // rounding up
@@ -623,9 +617,9 @@ print "-->Printed at a maximum allowed printing scale of " + MaxPrintScale_round
 
 // Output approximate real-world print dimensions in mm at MinPrintScale 
 // Compute raw values first
-var min_length_raw = length * MinPrintScaleFactor * JMolStlScale;
-var min_height_raw = height * MinPrintScaleFactor * JMolStlScale;
-var min_depth_raw = depth * MinPrintScaleFactor * JMolStlScale;
+var min_length_raw = ~length * MinPrintScaleFactor * JMolStlScale;
+var min_height_raw = ~height * MinPrintScaleFactor * JMolStlScale;
+var min_depth_raw = ~depth * MinPrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
 var min_length_mm = point(min_length_raw)%0;  // rounding up
 var min_height_mm = point(min_height_raw)%0;;  // rounding up
@@ -664,9 +658,9 @@ print "--------------------------------------------";
 
 // Output approximate real-world print dimensions in mm at current scale/user 
 // Compute raw values first
-var user_length_raw = length * PrintScaleFactor * JMolStlScale;
-var user_height_raw = height * PrintScaleFactor * JMolStlScale;
-var user_depth_raw = depth * PrintScaleFactor * JMolStlScale;
+var user_length_raw = ~length * PrintScaleFactor * JMolStlScale;
+var user_height_raw = ~height * PrintScaleFactor * JMolStlScale;
+var user_depth_raw = ~depth * PrintScaleFactor * JMolStlScale;
 // Round values to the nearest integer
 var user_length_mm = point(user_length_raw)%0;;  // rounding up
 var user_height_mm = point(user_height_raw)%0;;  // rounding up
