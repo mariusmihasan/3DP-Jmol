@@ -150,8 +150,6 @@ var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
 var AtomsScaledPercent = point((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)%0
 var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
 var AtomsScaledPercent_corrected = AtomsScaledPercent;
-var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
-var AtomsScaledPercent_corrected = AtomsScaledPercent;
 if (AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
     AtomsScaledPercent_corrected = AtomsScaledPercentMax;
 }
