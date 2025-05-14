@@ -16,16 +16,16 @@ var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Ex
 
 load =2HHB //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Not yet for cartoon.
+var opt = "ribbon" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Not yet for cartoon.
 
 var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
 var NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1.
 
 // Config options for adding struts holding ligands:
-var nMaxOneAtomLigandStruts = 1; // One-atom ligand may be linked (in file) to more than one residue. 1 restricts the number of struts, in case of backbone/trace/etc. rendering. Zero disables restriction.
+var nMaxOneAtomLigandStruts = 1; // One-atom ligand may be linked (in file) to more than one residue. 1 restricts the number of struts, in case of backbone/trace/etc. rendering. Zero disables the restriction.
 var nMaxMultiAtomLigandStruts = 3;
-var nMaxMultiAtomLigandAtoms = 6; /* For multi-atom ligand with no links declared in file. Number of struts will not exceed (first Max) [i.e., 6 struts at most for any size of ligand], but the number will be reduced to 1 if the ligand has less than (second Max) atoms [i.e., one strut for ligand with 5 atoms]. */
+var nMaxMultiAtomLigandAtoms = 6; //For multi-atom ligand with no links declared in file. The number of struts will not exceed (first Max) [i.e., 6 struts at most for any size of ligand], but the number will be reduced to 1 if the ligand has less than (second Max) atoms [i.e., one strut for ligand with 5 atoms].
 
 ///This is where the required user input ends and the process starts. No edits below this line should be required. 
 //=================================================================================================================
@@ -150,6 +150,8 @@ var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
 var AtomsScaledPercent = point((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)%0
 var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
 var AtomsScaledPercent_corrected = AtomsScaledPercent;
+var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
+var AtomsScaledPercent_corrected = AtomsScaledPercent;
 if (AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
     AtomsScaledPercent_corrected = AtomsScaledPercentMax;
 }
@@ -251,17 +253,29 @@ if (opt=='trace');
     select all;
 endif;
 
-//cartoon needs work. Arrows tip is much to thin to ensure succesfull print and dont know how to change it. Also, secundary structures are rendered thinner than the coil. 
+//cartoon needs work.  Arrows tip is much to thin to ensure succesfull print. Also, secundary structures are rendered thinner than the coil. // First attempt to enhnce the rendering from Angel by overlaying  trace. A good rendering is achieved  when only trace @{-tR*0.5}; when cartoon @{-tR}; is applied, arrows are again disconected from the trace. Two versions of overlay are presented, both produce same results. 
 if (opt=='cartoon');
 // Protein ribbon
   select ~prot;
   rSet();
   hbonds off;
   isosurface delete;
-  cartoon @{-tR};
+  define nonS (~prot and not(helix,sheet));
+  /* enhanced v1: helix+sheet cartoon, nonSec+connections trace */
+  //select nonS or ( alpha and within(group, connected(nonS)) );
+  //trace @{-tR*0.5};
+  select ~prot and (helix,sheet);
+  /* enhanced v2: all cartoon, connections trace */
+  select alpha and within(group, connected(nonS));
+  select add (nonS and connected(selected));
+  trace @{-tR*0.5};
+  select ~prot;
+  cartoon on 
+  //cartoon @{-tR};
   set ssbonds backbone;
   ssBonds @ssR;
   select all;
+
 // DNA ribbon
   select ~nuc;
   rSet();
