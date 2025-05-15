@@ -16,7 +16,7 @@ var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Ex
 
 load =2HHB //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-var opt = "ribbon" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Not yet for cartoon.
+var opt = "ribbon" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Cartoon works now, but needs a bit of testing a validation through printing.
 
 var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
@@ -253,27 +253,28 @@ if (opt=='trace');
     select all;
 endif;
 
-//cartoon needs work.  Arrows tip is much to thin to ensure succesfull print. Also, secundary structures are rendered thinner than the coil. // First attempt to enhnce the rendering from Angel by overlaying  trace. A good rendering is achieved  when only trace @{-tR*0.5}; when cartoon @{-tR}; is applied, arrows are again disconected from the trace. Two versions of overlay are presented, both produce same results. 
+//cartoon works, but needs validation through printing 
 if (opt=='cartoon');
-// Protein ribbon
+// Protein cartoon
   select ~prot;
   rSet();
   hbonds off;
   isosurface delete;
-  define nonS (~prot and not(helix,sheet));
-  /* enhanced v1: helix+sheet cartoon, nonSec+connections trace */
+  set ssbonds backbone;
+  ssBonds @ssR;
+  //enhanced cartoons 1b
+  //define nonS (~prot and not(helix,sheet));
   //select nonS or ( alpha and within(group, connected(nonS)) );
   //trace @{-tR*0.5};
-  select ~prot and (helix,sheet);
-  /* enhanced v2: all cartoon, connections trace */
+  //select ~prot and (helix,sheet);
+  //cartoon @{tR*1.1};
+  //enhanced cartoons 2b
+  define nonS (~prot and not(helix,sheet));
   select alpha and within(group, connected(nonS));
   select add (nonS and connected(selected));
   trace @{-tR*0.5};
   select ~prot;
-  cartoon on 
-  //cartoon @{-tR};
-  set ssbonds backbone;
-  ssBonds @ssR;
+  cartoon @{tR*1.1};
   select all;
 
 // DNA ribbon
