@@ -253,7 +253,7 @@ if (opt=='trace');
     select all;
 endif;
 
-//cartoon works, but needs validation through printing 
+//cartoon works, but slicers detect errors in the surfaces related to non-manifold. Slicing and printing might fail. 
 if (opt=='cartoon');
 // Protein cartoon
   select ~prot;
