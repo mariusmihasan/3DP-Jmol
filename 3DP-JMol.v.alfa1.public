@@ -14,9 +14,9 @@ var PrintScaleFactorUser = 0; //This is where the size of the printed model is i
 
 var colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 
-load =2HHB //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
+load =4ins //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-var opt = "ribbon" // works for  ballandstick; backbone; trace; ribbon; sesurface and sasurface. Cartoon kind of works now, but models are not manifold and give strange errors when sliced.
+var opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface and sasurface. 
 
 var LigStruts = true  // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
@@ -209,7 +209,7 @@ if (opt=='backbone');
     rSet();
     hbonds off;
     isosurface delete;
-    backbone @{-bbR};
+    backbone @{bbR};
     set ssbonds backbone;
     ssBonds @ssR;
     select all;
@@ -253,7 +253,7 @@ if (opt=='trace');
     select all;
 endif;
 
-//cartoon works, but slicers detect errors in the surfaces related to non-manifold. Slicing and printing might fail. 
+//cartoon works, but needs validation through printing //enhanced cartoons 1b
 if (opt=='cartoon');
 // Protein cartoon
   select ~prot;
@@ -262,19 +262,12 @@ if (opt=='cartoon');
   isosurface delete;
   set ssbonds backbone;
   ssBonds @ssR;
-  //enhanced cartoons 1b
   define nonS (~prot and not(helix,sheet));
   select nonS or ( alpha and within(group, connected(nonS)) );
-  trace @{tR};
+  trace @{tR/2};
   select ~prot and (helix,sheet);
-  cartoon @{tR*2};
-  //enhanced cartoons 2b
-  //define nonS (~prot and not(helix,sheet));
-  //select alpha and within(group, connected(nonS));
-  //select add (nonS and connected(selected));
-  //trace @{-tR*0.5};
-  //select ~prot;
-  //cartoon @{tR*1.1};
+  cartoon @{tR};
+
   select all;
 
 // DNA ribbon
@@ -592,8 +585,9 @@ print "- the minimum allowed scale for the Ball and stick style for single mater
 print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + minThresholdScaleFactorBallStick_display + " %;";
 print "--- the minimum allowed scale for the Trace style is " + MinThresholdScaleFactorTrace_display + " %;";
 print "---- the minimum allowed scale for the Ribbon style is " + MinThresholdScaleFactorRibbon_display + " %;"
-print "----- the minimum allowed scale for the Backbone style is " + MinThresholdScaleFactorBackbone_display + " %;"
-print "------ The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
+print "----- the minimum allowed scale for the Cartoon style is " + MinThresholdScaleFactorCartoon_display + " %;"
+print "------ the minimum allowed scale for the Backbone style is " + MinThresholdScaleFactorBackbone_display + " %;"
+print "------- The surface rendering can be as low as " + MinPrintScale_round + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
 print "--- End of 3D Printing RECOMMENDATIONS for single color/material ----";
 print "--------------------------------------------";
 
@@ -646,7 +640,7 @@ var min_depth_mm = point(min_depth_raw)%0;    // rounding up
 print "-->Printed at a minimum printing scale of " + MinPrintScale_round + " % , your model will be approx " + min_length_mm + " mm x " + min_height_mm + " mm x " + min_depth_mm + " mm.";
 // text here needs to be edited depending on the final decision on how the var PrintBedMinDimension and PrintScaleFactor will be implemented (fixed or user selectable)
 
-// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section.
+// Print recommendations based on the PrintScale value. Thresholds are listed above in the technical specifications section. // need to add stuff for cartoons
 
 if (MaxPrintScaleFactor > 1) {
     print "Your molecule is small. All renderings are suitable and can be printed. We recommend printing it at a scale of 100%.";
@@ -670,6 +664,7 @@ print "- the minimum allowed scale for the Ball and stick style for single mater
 print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + point(minThresholdScaleFactorBallStick_display*JMolStlScale)%0 + " %;";
 print "--- the minimum allowed scale for the Trace style is " + point(MinThresholdScaleFactorTrace_display*JMolStlScale)%0 + " %;";
 print "---- the minimum allowed scale for the Ribbon style is " + point(MinThresholdScaleFactorRibbon_display*JMolStlScale)%0 + " %;"
+print "----- the minimum allowed scale for the Cartoon style is " + point(MinThresholdScaleFactorCartoon_display*JMolStlScale)%0 + " %;"
 print "----- the minimum allowed scale for the Backbone style is " + point(MinThresholdScaleFactorBackbone_display*JMolStlScale)%0 + " %;"
 print "------ The surface rendering can be as low as " + point(MinPrintScale_round)%0 + " % . Printing at smaller scales might still be possible, but atomic details (H atoms) will be lost.";
 print "--- End of 3D Printing RECOMMENDATIONS for multimaterial/multicolor----";
