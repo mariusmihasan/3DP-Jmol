@@ -1,4 +1,4 @@
-![3DP-Jmol logo](/3DP-Jmol_logo.png)
+![3DP-Jmol logo](/3DP-Jmol_logo_v1.png)
 
 **3DP-Jmol** is a Jmol/JSmol script that automatically generates 3D printable molecular models from structural data.
 
