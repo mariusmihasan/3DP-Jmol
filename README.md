@@ -1,4 +1,4 @@
-![3DP-Jmol logo](/3DP-Jmol_logo_v2.png) is a Jmol/JSmol script that automatically generates 3D printable molecular models from structural data.
+![3DP-Jmol logo](/3DP-Jmol_logo_v1.png) is a Jmol/JSmol script that automatically generates 3D printable molecular models from structural data.
 
 Have you ever wanted/needed a model of a macromolecule from PDB but were unable to find a suitable printable file? You don't have the time and patience to learn ChimeraX or PyMol to make it yourself? Then **3DP-Jmol** is something you need to try. 
 
