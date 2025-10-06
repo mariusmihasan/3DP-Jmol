@@ -59,6 +59,24 @@ cSurf = 'yellowTint'; // isosurfaces for proteins
 cSurfDNA = 'aliceblue'; // isosurfaces for proteins
 cSurfRNA = 'beige'; // isosurfaces for proteins
 
+if (colorPrinter=='yes');
+select protein;
+color backbone structure;
+color trace structure;
+color ribbons structure;
+color cartoon structure;
+
+select nucleic;
+color backbone mediumOrchid;
+color trace mediumOrchid;
+color ribbons mediumOrchid;
+color cartoon mediumOrchid;
+
+select all;
+color ssBonds yellow; 
+endif;
+
+if (colorPrinter=='no');
 select protein;
 color backbone dodgerBlue;
 color trace dodgerBlue;
@@ -73,6 +91,7 @@ color cartoon mediumOrchid;
 
 select all;
 color ssBonds yellow;
+endif;
 
 function checkStruts() {  // for debugging ligand struts
   display not ~poly;
