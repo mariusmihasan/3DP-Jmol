@@ -56,8 +56,8 @@ set hbondsSolid true;
 */
 cHb = 'deepskyblue'; // H bonds [xFDF5E6]
 cSurf = 'yellowTint'; // isosurfaces for proteins
-cSurfDNA = 'aliceblue'; // isosurfaces for proteins
-cSurfRNA = 'beige'; // isosurfaces for proteins
+cSurfDNA = 'aliceblue'; // isosurfaces for DNA
+cSurfRNA = 'beige'; // isosurfaces for RNA
 
 if (colorPrinter=='yes');
 select protein;
@@ -68,9 +68,9 @@ color cartoon structure;
 
 select nucleic;
 color backbone mediumOrchid;
-color trace mediumOrchid;
-color ribbons mediumOrchid;
-color cartoon mediumOrchid;
+color trace structure;
+color ribbons structure;
+color cartoon structure;
 
 select all;
 color ssBonds yellow; 
