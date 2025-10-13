@@ -235,6 +235,7 @@ tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bo
 if (opt == "UserScene");
 delete not visible
 print "UserScene settings applied"
+/////code is needed here to make everything printable
 endif;
 if (opt == "ballandstick");
 rSet();
