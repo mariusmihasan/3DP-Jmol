@@ -1,3 +1,4 @@
+
 t = now(); // timer start
 ///This is where user input is required
 
@@ -429,9 +430,11 @@ function ligandProteinStruts() {
       lig = LG[i].atoms;
       protA = {~poly} and connected({lig}); // linked atoms in protein
       if ( protA.size>0 ) {
-        ligA = {lig} and connected({protA}); // linked atom(s) in ligand
-        connect ( {ligA} ) ( within(group, {protA}) and ~node ) strut;
-        print "->> " + ligA.size + " struts for linked atom(s) in ligand #" + i + ", " + LG[i].groupNames;
+        for (var i in protA) {
+          ligA = {lig} and connected({i}); // linked atom in ligand
+          connect ( {ligA} ) ( within(group, {i}) and ~node ) strut;
+        }
+        print "INFO: " + protA.size + " struts for linked atom(s) in ligand #" + i + ", " + LG[i].groupNames;
       } else { // NON-LINKED LIGAND
         lig = LG[i].atoms;
         nLigandStruts = nMaxMultiAtomLigandStruts;
