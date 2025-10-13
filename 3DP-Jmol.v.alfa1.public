@@ -137,6 +137,10 @@ define ~poly ~prot or ~nuc;
 define ~node alpha or (*.P and nucleic); 
 define ~nodeN ~node and nucleic; 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
+if (opt == "UserScene");
+delete not visible
+print "Deleted hidden atoms in the scene"
+endif;
 boundbox {*}; // update to based on atoms present: no need to display it
 var ~vector = getProperty("boundBoxInfo", "vector");
 if (~vector == null) {
