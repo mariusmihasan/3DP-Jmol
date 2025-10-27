@@ -11,7 +11,7 @@ if (hydrogenAtoms=='off'); // no edits required
   SET pdbAddHydrogens FALSE; // no edits required
 endif; // no edits required
 
-PrintScaleFactorUser = 0.3; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
+PrintScaleFactorUser = 0; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
 colorPrinter = 'yes'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 
