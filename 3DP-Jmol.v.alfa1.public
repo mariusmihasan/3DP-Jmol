@@ -17,7 +17,7 @@ colorPrinter = 'yes'  # 'yes' or 'no' // Please leave it to 'no'  for now. Exper
 
 load =4ins //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-opt = "UserScene" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface and sasurface. UserScene leves all seting as default, to be used in conjunction with the ProteopediaScene
+opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface and sasurface. UserScene leaves all settings as default, to be used in conjunction with the ProteopediaScene
 
 LigStruts = true   // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
