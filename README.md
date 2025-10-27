@@ -4,7 +4,10 @@ Have you ever wanted/needed a model of a macromolecule from PDB but were unable 
 
 The most user-intensive step in generating 3D printable models of macromolecular structures is by far the conversion of the structural data into the stl file. This step is key not only for the printability of the model but also for its success as an educational or demonstration material. Important key information related to the target molecule such as size, atoms, and bond dimensions must be correlated with the final dimensions of the physical model and printing hardware. Hence we started developing 3DP-Jmol – a script that automatically generates 3D printable molecular models from structural data based on very minimal user input.  
 
-**3DP-Jmol** is currently under development and new features are added constantly. Although we expect things to run smoothly, your experience may vary. Version alpha1.public introduces an experimental feature - generating obj files as output compatible with multicolor printing. Automatic color selection is only possible in a few slicers, including OrcaSlicer And Bambu Studio.
+**3DP-Jmol** is currently under development and new features are added constantly. Although we expect things to run smoothly, your experience may vary. Version alpha1.public introduces an experimental feature - generating obj files as output compatible with multicolor printing. Automatic color selection is only possible in a few slicers, including OrcaSlicer and Bambu Studio.
+
+# **Protepedia integration**
+[**Proteopedia**](https://proteopedia.org/) integrates within each molecular scene a dedicated **Print3D** tool powered by **3DP-Jmol** that enables logged-in users to effortlessly generate 3D-printable molecular models directly from its pages. [**Help pages**](https://proteopedia.org/wiki/index.php/User:Marius_Mihasan/Print3D_help) on how to use the tool and a [**gallery with 3D printed models**](https://proteopedia.org/wiki/index.php/User:Marius_Mihasan/Print3D_models_gallery) generated from [**Proteopedia**](https://proteopedia.org/) are also available.  The tool is intended for novice users. For full access to **3DP-Jmol** full scripting capabilities, and advanced export features, please read below.
 
 # **Brief instructions**
 1. Download and unzip [Jmol](https://jmol.sourceforge.net/), an open-source Java viewer for chemical structures in 3D;
