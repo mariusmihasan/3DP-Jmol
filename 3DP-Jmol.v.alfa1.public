@@ -1,3 +1,4 @@
+
 t = now(); // timer start
 ///This is where user input is required
 
@@ -12,11 +13,11 @@ endif; // no edits required
 
 PrintScaleFactorUser = 0.3; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
-colorPrinter = 'no'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
+colorPrinter = 'yes'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 
 load =4ins //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface and sasurface. 
+opt = "UserScene" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface and sasurface. UserScene leves all seting as default, to be used in conjunction with the ProteopediaScene
 
 LigStruts = true   // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
@@ -52,46 +53,68 @@ set hermiteLevel 4;
 set ribbonAspectRatio 2;
 set hbondsSolid true;
 
-/* COLORS:  ==============================================
-*/
-cHb = 'deepskyblue'; // H bonds [xFDF5E6]
-cSurf = 'yellowTint'; // isosurfaces for proteins
-cSurfDNA = 'aliceblue'; // isosurfaces for DNA
-cSurfRNA = 'beige'; // isosurfaces for RNA
+# COLORS BASED ON PRINTER TYPE AND VISUALISATION STYLE
+# =====================================================
 
-if (colorPrinter=='yes');
-select protein;
-color backbone structure;
-color trace structure;
-color ribbons structure;
-color cartoon structure;
+if (colorPrinter == "no")
+    if (opt == "ballandstick" || opt == "backbone" || opt == "trace" ||
+        opt == "ribbon" || opt == "cartoon" || opt == "sesurface" || opt == "sasurface")
 
-select nucleic;
-color backbone mediumOrchid;
-color trace structure;
-color ribbons structure;
-color cartoon structure;
+        cHb = "deepskyblue"   # H bonds
+        cSurf = "yellowTint"  # isosurfaces for proteins
+        cSurfDNA = "aliceblue"
+        cSurfRNA = "beige"
 
-select all;
-color ssBonds yellow; 
-endif;
+        select protein
+        color backbone dodgerBlue
+        color trace dodgerBlue
+        color ribbons dodgerBlue
+        color cartoon dodgerBlue
 
-if (colorPrinter=='no');
-select protein;
-color backbone dodgerBlue;
-color trace dodgerBlue;
-color ribbons dodgerBlue;
-color cartoon dodgerBlue;
+        select nucleic
+        color backbone mediumOrchid
+        color trace mediumOrchid
+        color ribbons mediumOrchid
+        color cartoon mediumOrchid
 
-select nucleic;
-color backbone mediumOrchid;
-color trace mediumOrchid;
-color ribbons mediumOrchid;
-color cartoon mediumOrchid;
+        select all
+        color ssBonds yellow
 
-select all;
-color ssBonds yellow;
-endif;
+        echo "Monochrome settings applied for printable model"
+
+    else if (opt == "UserScene")
+        echo "Monochrome UserScene settings applied"
+    endif
+else if (colorPrinter == "yes")
+    if (opt == "ballandstick" || opt == "backbone" || opt == "trace" ||
+        opt == "ribbon" || opt == "cartoon" || opt == "sesurface" || opt == "sasurface")
+
+        cHb = "deepskyblue"
+        cSurf = "yellowTint"
+        cSurfDNA = "aliceblue"
+        cSurfRNA = "beige"
+
+        select protein
+        color backbone structure
+        color trace structure
+        color ribbons structure
+        color cartoon structure
+
+        select nucleic
+        color backbone mediumOrchid
+        color trace structure
+        color ribbons structure
+        color cartoon structure
+
+        select all
+        color ssBonds yellow
+
+        echo "Color settings applied for printable model"
+
+    else if (opt == "UserScene")
+        echo "Color UserScene settings applied"
+    endif
+endif
 
 function checkStruts() {  // for debugging ligand struts
   display not ~poly;
@@ -114,6 +137,10 @@ define ~poly ~prot or ~nuc;
 define ~node alpha or (*.P and nucleic); 
 define ~nodeN ~node and nucleic; 
 print "- Reading information related to the molecule: size, smallest and largest atom, smallest bond length";
+if (opt == "UserScene");
+delete not visible
+print "Deleted hidden atoms in the scene"
+endif;
 boundbox {*}; // update to based on atoms present: no need to display it
 var ~vector = getProperty("boundBoxInfo", "vector");
 if (~vector == null) {
@@ -209,6 +236,11 @@ tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bo
 /* RENDERING:  ==============================================
 */
 
+if (opt == "UserScene");
+delete not visible
+print "UserScene settings applied"
+/////code is needed here to make everything printable
+endif;
 if (opt == "ballandstick");
 rSet();
     calculate hbonds // this needs to be decided
@@ -429,9 +461,11 @@ function ligandProteinStruts() {
       lig = LG[i].atoms;
       protA = {~poly} and connected({lig}); // linked atoms in protein
       if ( protA.size>0 ) {
-        ligA = {lig} and connected({protA}); // linked atom(s) in ligand
-        connect ( {ligA} ) ( within(group, {protA}) and ~node ) strut;
-        print "->> " + ligA.size + " struts for linked atom(s) in ligand #" + i + ", " + LG[i].groupNames;
+        for (var i in protA) {
+          ligA = {lig} and connected({i}); // linked atom in ligand
+          connect ( {ligA} ) ( within(group, {i}) and ~node ) strut;
+        }
+        print "INFO: " + protA.size + " struts for linked atom(s) in ligand #" + i + ", " + LG[i].groupNames;
       } else { // NON-LINKED LIGAND
         lig = LG[i].atoms;
         nLigandStruts = nMaxMultiAtomLigandStruts;
