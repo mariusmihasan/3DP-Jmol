@@ -11,13 +11,13 @@ if (hydrogenAtoms=='off'); // no edits required
   SET pdbAddHydrogens FALSE; // no edits required
 endif; // no edits required
 
-PrintScaleFactorUser = 0; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
+PrintScaleFactorUser = 0.3; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
 colorPrinter = 'yes'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
 
-load =4ins //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
+load =2hhb //FILTER "BIOMOLECULE 1" // Please type here the 4-character code of the macromolecule of interest from PDB - https://www.rcsb.org/. Alternatively, PubChem molecules can be loaded using this command load :nicotine  and  codes from https://www.ebi.ac.uk/pdbe/ using this command load *8jiv
 
-opt = "backbone" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface and sasurface. UserScene leaves all settings as default, to be used in conjunction with the ProteopediaScene
+opt = "cartoon" // works for  ballandstick; backbone; trace; ribbon; cartoon, sesurface, sasurface and UserScene. UserScene leaves all settings as default, to be used in conjunction with the ProteopediaScene or for a user-set-up scene. If UserScene is used, the line above (starting with load = ) needs to be commented out (becoming //load =)
 
 LigStruts = true   // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
@@ -236,11 +236,6 @@ tR = (bR * 2); /* trace, ribbons, blocks (nucleic cartoons) are thicker the a bo
 /* RENDERING:  ==============================================
 */
 
-if (opt == "UserScene");
-delete not visible
-print "UserScene settings applied"
-/////code is needed here to make everything printable
-endif;
 if (opt == "ballandstick");
 rSet();
     calculate hbonds // this needs to be decided
@@ -382,6 +377,42 @@ if (opt=='blocks');// dont think we need this one
   set ssbonds backbone;
   ssBonds @ssR;
   select all;
+endif;
+
+if (opt == "UserScene");
+delete not visible
+define hasCartoon none;
+define hasTrace none;
+define hasBackbone none;
+define hasBalls none;
+define hasSticks none;
+
+for (i in {(alpha)} ) {
+    if ( {i}.cartoon>0 ) { define hasCartoon (hasCartoon, i); }
+    if ( {i}.trace>0 ) { define hasTrace (hasTrace, i); }
+    if ( {i}.backbone>0 ) { define hasBackbone (hasBackbone, i); }
+}
+for (i in {*}) {
+    if ( {i}.radius>0 ) { define hasBalls (hasBalls, i); }
+}
+
+setOfBonds = {*}.getProperty("bondInfo");
+for (i in setOfBonds) {
+    if (i.visible) {
+        define hasSticks (hasSticks, atomNo=@{i.atom1.atomno}, atomNo=@{i.atom2.atomno});
+    }
+}
+
+// Apply styles for 3Dprint for the UserScene;
+select hasBackbone; backbone @bbR;
+select hasTrace; trace @tR;
+define nonS (hasCartoon and not(helix,sheet));
+select nonS or ( alpha and within(group, connected(nonS)) ); trace @{tR/2};
+select hasCartoon and (helix,sheet); cartoon @tR;
+select hasBalls; spacefill @aR%;
+select hasSticks; wireframe @bR;
+hbonds @hR;
+print "UserScene settings applied"
 endif;
 
 // Ligands
