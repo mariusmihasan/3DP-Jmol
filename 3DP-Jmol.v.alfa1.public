@@ -412,7 +412,6 @@ select hasCartoon and (helix,sheet); cartoon @tR;
 select hasBalls; spacefill @aR%;
 select hasSticks; wireframe @bR;
 hbonds @hR;
-color hbonds @cHb
 print "UserScene settings applied"
 endif;
 
