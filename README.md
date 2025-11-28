@@ -26,6 +26,9 @@ The most user-intensive step in generating 3D printable models of macromolecular
 `Time for running the script version alfa1.public is: 4956ms`
 9. Check the instructions in the Console and, if required, based on the indications and your choice, come back to step 4 and repeat. The path for the `test.stl`  file generated is indicated before the last line in the Console. Print it and enjoy!
 
+# **Printing the generated models**
+A repository with PrusaSlicer and BambuStudio printing profiles that have been tested with the **3DP-Jmol** generated output is also provided here: [**molecularmodels-3d-printing-profiles**](https://github.com/mariusmihasan/molecularmodels-3d-printing-profiles). Be aware that the repo is a work in progress.
+
 # **Contributors**: 
 - [Dr. Marius Mihasan](https://modelemoleculare.ro/), Biology Department, Alexandru Ioan Cuza University of Iasi, Carol I Bvd., No.11, 700506, Iaşi, Romania
 - [Dr. Angel Herráez](https://biomodel.uah.es/), Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain 
