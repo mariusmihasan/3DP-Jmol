@@ -7,7 +7,7 @@ The most user-intensive step in generating 3D printable models of macromolecular
 **3DP-Jmol** is currently under development and new features are added constantly. Although we expect things to run smoothly, your experience may vary. Version alpha1.public introduces an experimental feature - generating obj files as output compatible with multicolor printing. Automatic color selection is only possible in a few slicers, including OrcaSlicer and Bambu Studio.
 
 # **Web integrations**
-**3DP-Jmol** has been integrated into several educational and research web platforms to facilitate direct generation of 3D-printable molecular models:
+**3DP-Jmol** can be integrated into web pages to facilitate direct generation of 3D-printable molecular models. Here are two examples:
 [**EDUMOL Demo App**](https://projects.info.uaic.ro/edumol/demo-app) - integration implemented by Liviu-Andrei Scutelnicu, Alexandru Ioan Cuza University of Iași (UAIC), Romania.
 [**JSmol 3D-Print Test Page**](https://biomodel.uah.es/JSmol16/3Dprint/3Dprint_2.htm) - integration developed by Dr. Ángel Herráez, Biochemistry and Molecular Biology, Dept. of Systems Biology, University of Alcalá, E-28805 Alcalá de Henares  (Madrid), Spain 
 
