@@ -64,6 +64,7 @@ if (colorPrinter == "no")
         cSurf = "yellowTint"  # isosurfaces for proteins
         cSurfDNA = "aliceblue"
         cSurfRNA = "beige"
+        cSurfOther = 'greenTint'; // isosurfaces for only non-macromolecule
 
         select protein
         color backbone dodgerBlue
@@ -83,7 +84,7 @@ if (colorPrinter == "no")
         echo "Monochrome settings applied for printable model"
 
     else if (opt == "UserScene")
-        echo "Monochrome UserScene settings applied"
+        echo "Monochrome UserScene settings applied."
     endif
 else if (colorPrinter == "yes")
     if (opt == "ballandstick" || opt == "backbone" || opt == "trace" ||
@@ -93,6 +94,7 @@ else if (colorPrinter == "yes")
         cSurf = "yellowTint"
         cSurfDNA = "aliceblue"
         cSurfRNA = "beige"
+        cSurfOther = 'greenTint'; // isosurfaces for only non-macromolecule
 
         select protein
         color backbone structure
@@ -112,7 +114,7 @@ else if (colorPrinter == "yes")
         echo "Color settings applied for printable model"
 
     else if (opt == "UserScene")
-        echo "Color UserScene settings applied"
+        echo "Color UserScene settings applied."
     endif
 endif
 
@@ -575,16 +577,23 @@ refresh;
 if (opt=='sesurface') {
   isosurface A resolution 3 select(~prot) only molecular; // resolution x is to increase the quality of the exported surface. Default is resolution 1 which is fast, but of low quality. 2 is so and so, 3 looks good enough and computation time for 2HHB is acceptable, for 4 and more  computation time increases. Might require some tweaking, maybe somehow related to the prin scale - low print scare should require lower resolution. 
   isosurface B resolution 3 select(~dna) only molecular;
-  isosurface C resolution 3 select(~rna) only molecular;  
+  isosurface C resolution 3 select(~rna) only molecular;
+if ( {~prot}.size + {~dna}.size + {~rna}.size == 0 ) {
+    isosurface D resolution 3 select(all) molecular;
+  }
 }
 if (opt=='sasurface') {
   isosurface A resolution 3 select(~prot) only sasurface; 
   isosurface B resolution 3 select(~dna) only sasurface;
-  isosurface C resolution 3 select(~rna) only sasurface;  
+  isosurface C resolution 3 select(~rna) only sasurface;
+if ( {~prot}.size + {~dna}.size + {~rna}.size == 0 ) {
+    isosurface D resolution 3 select(all) sasurface;
+  }
 }
 color $A @cSurf;
 color $B @cSurfDNA;
 color $C @cSurfRNA;
+color $D @cSurfOther;
 center all;
 select ~poly and not connected(not ~poly);
 hBonds 0;
