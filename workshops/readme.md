@@ -1,4 +1,4 @@
-Materials for attendees to workshops related to [**3DP-Jmol**](https://github.com/mariusmihasan/3DP-Jmol/) and  [**Proteopedia**](https://proteopedia.org/)  **Print3D** tool.
+Materials for attendees to workshops related to [**3DP-Jmol**](https://github.com/mariusmihasan/3DP-Jmol/), [**EDUMOL3D APP**](https://projects.info.uaic.ro/edumol/demo-app),and  [**Proteopedia**](https://proteopedia.org/)  **Print3D** tool.
 
 
 -------------------------------------------
