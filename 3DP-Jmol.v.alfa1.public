@@ -153,7 +153,7 @@ var ~length = 2 * ~vector.x;  // X-axis (width)
 var ~height = 2 * ~vector.y;  // Y-axis (height)
 var ~depth  = 2 * ~vector.z;  // Z-axis (depth)
 
-var volume = ~length * ~height * depth;
+var volume = ~length * ~height * ~depth;
 var maxDim = ~length;
 if (~height > maxDim) {
   maxDim = ~height;
@@ -161,7 +161,6 @@ if (~height > maxDim) {
 if (~depth > maxDim) {
   maxDim = ~depth;
 }
-
 var MinBondLength = 1.0; // default, this is N-H or O-H length
 if ({*}.bonds.size != 0) { MinBondLength = {*}.bonds.length.min; }
 
@@ -176,7 +175,7 @@ var JMolStlScale = 10.0;
 var MinPrintedObjDimen = 3.0 / JMolStlScale;
 var RefBondLength = 2.86; 
 var AtomToBondDiamRatio = 0.78 / MinPrintedObjDimen ;
-var AtomToBondLengthRatio = (2 * MaxSpacefill) / MinBondLength;
+var AtomToBondLengthRatio = (2 * maxSpacefill) / MinBondLength;
 var AtomScalingFactor = 0.23; 
 var PrintBedMinDimension = 210.0 / JMolStlScale;
 var MaxPrintScaleFactor = PrintBedMinDimension / maxDim;
@@ -196,8 +195,6 @@ if (PrintScaleFactorUser == 0) {  //
 
 var bonds_radius = (MinPrintedObjDimen/PrintScaleFactor) / 2;
 var AtomsScaledPercent = point((MinPrintedObjDimen / PrintScaleFactor)/(minSpacefill / AtomScalingFactor) * 100)%0
-var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
-var AtomsScaledPercent_corrected = AtomsScaledPercent;
 var AtomsScaledPercentMax = point((maxSpacefill/MinBondLength) *100)%0;
 var AtomsScaledPercent_corrected = AtomsScaledPercent;
 if (AtomsScaledPercent_corrected > AtomsScaledPercentMax) {
@@ -673,7 +670,7 @@ if (MaxPrintScaleFactor > 1) {
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
 print "- the minimum allowed scale for the Ball and stick style for single material printers is " + MinThresholdScaleFactorBallStick_soluble_display + " %;";
-print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + minThresholdScaleFactorBallStick_display + " %;";
+print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + MinThresholdScaleFactorBallStick_display + " %;";
 print "--- the minimum allowed scale for the Trace style is " + MinThresholdScaleFactorTrace_display + " %;";
 print "---- the minimum allowed scale for the Ribbon style is " + MinThresholdScaleFactorRibbon_display + " %;"
 print "----- the minimum allowed scale for the Cartoon style is " + MinThresholdScaleFactorCartoon_display + " %;"
@@ -752,7 +749,7 @@ if (MaxPrintScaleFactor > 1) {
 }
 print "When deciding on the final dimensions and the corresponding scale, please keep in mind that:";
 print "- the minimum allowed scale for the Ball and stick style for single material printers is " + point(MinThresholdScaleFactorBallStick_soluble_display*JMolStlScale)%0 + " %;";
-print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + point(minThresholdScaleFactorBallStick_display*JMolStlScale)%0 + " %;";
+print "-- the minimum allowed scale for the Ball and stick style when soluble support is used is " + point(MinThresholdScaleFactorBallStick_display*JMolStlScale)%0 + " %;";
 print "--- the minimum allowed scale for the Trace style is " + point(MinThresholdScaleFactorTrace_display*JMolStlScale)%0 + " %;";
 print "---- the minimum allowed scale for the Ribbon style is " + point(MinThresholdScaleFactorRibbon_display*JMolStlScale)%0 + " %;"
 print "----- the minimum allowed scale for the Cartoon style is " + point(MinThresholdScaleFactorCartoon_display*JMolStlScale)%0 + " %;"
