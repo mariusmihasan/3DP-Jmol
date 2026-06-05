@@ -2,15 +2,6 @@
 t = now(); // timer start
 ///This is where user input is required
 
-var hydrogenAtoms = 'on'  # 'on'  or 'off'// Recommended to be off unless you have particular reasons to have the hydrogen atoms shown in the model.  H atoms might be required when the model is represented as ball and sticks, or when ligands are present. If not H atoms are not mandatory, keep in mind that keeping this option on will increase the minimum scale at which the model can be printed. 
-
-if (hydrogenAtoms=='on'); // no edits required
-  SET pdbAddHydrogens; // no edits required
-endif; // no edits required
-if (hydrogenAtoms=='off'); // no edits required
-  SET pdbAddHydrogens FALSE; // no edits required
-endif; // no edits required
-
 PrintScaleFactorUser = 0.3; //This is where the size of the printed model is indicated by the user as print scale. Should be 0 when first running the script to generate a model printable at the maximum size. Based on the feedback from the console, smaller scales could be selected by the user based on his preference. The scale in the console is %, but here should be divided by 100. For example, for a scale of 30%, here should be 0.3
 
 colorPrinter = 'yes'  # 'yes' or 'no' // Please leave it to 'no'  for now. Experimental feature, not yet fully tested.
@@ -22,6 +13,15 @@ opt = "cartoon" // works for  ballandstick; backbone; trace; ribbon; cartoon, se
 LigStruts = true   // If ligands are to be connected with the macromolecule.  Recommended to be true for backbone; trace; ribbon;  for surface (sesurface and sasurface) needs to be false. 
 
 NucProtStruts = 1 // If nucleic acids  are to be connected with the macromolecule.  0 or 1.
+
+var hydrogenAtoms = 'on'  # 'on'  or 'off'// Recommended to be off unless you have particular reasons to have the hydrogen atoms shown in the model.  H atoms might be required when the model is represented as ball and sticks, or when ligands are present. If not H atoms are not mandatory, keep in mind that keeping this option on will increase the minimum scale at which the model can be printed. 
+
+if (hydrogenAtoms=='on'); // no edits required
+  SET pdbAddHydrogens; // no edits required
+endif; // no edits required
+if (hydrogenAtoms=='off'); // no edits required
+  SET pdbAddHydrogens FALSE; // no edits required
+endif; // no edits required
 
 // Config options for adding struts holding ligands:
 nMaxOneAtomLigandStruts = 1;   /* One-atom ligand may be linked (in file) to more than one residue. 1 restricts number of struts, in case of backbone/trace/etc. rendering Zero disables restriction. */
